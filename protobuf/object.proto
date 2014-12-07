@@ -1,0 +1,17 @@
+package protobuf;
+
+message Object {
+  enum Status {
+    IDLE = 0;
+    MOVING = 1;
+  }
+
+  message Position {
+    required int32 x = 1;
+    required int32 y = 2;
+  }
+
+  required int32 id = 1;
+  required Position position = 2;
+  required Status status = 3;
+}
