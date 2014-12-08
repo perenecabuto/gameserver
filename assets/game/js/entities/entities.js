@@ -36,9 +36,13 @@ game.PlayerEntity = me.Entity.extend({
          * Ou seja a implementação será a mesma
          * somente faz body.update e collision check
          */
+
+        /* OBS this.flipX trocado por this.renderable.flipX
+         * procure por flipX em http://blog.ciangames.com/2014/11/upgrading-to-melonjs-20.html
+         */
         if (me.input.isKeyPressed('left')) {
             // flip the sprite on horizontal axis
-            //this.flipX(true);
+            this.renderable.flipX(true);
             // update the entity velocity
             this.body.vel.x -= this.body.accel.x * me.timer.tick;
             // change to the walking animation
@@ -47,7 +51,7 @@ game.PlayerEntity = me.Entity.extend({
             }
         } else if (me.input.isKeyPressed('right')) {
             // unflip the sprite
-            //this.flipX(false);
+            this.renderable.flipX(false);
             // update the entity velocity
             this.body.vel.x += this.body.accel.x * me.timer.tick;
             // change to the walking animation
