@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	port = flag.String("port", "8888", "Define what TCP port to bind to")
+	port = flag.String("port", "4000", "Define what TCP port to bind to")
 	root = flag.String("root", ".", "Define the root filesystem path")
 )
 

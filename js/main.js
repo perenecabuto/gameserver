@@ -8,12 +8,21 @@ ProtoBuf.loadProtoFile("protobuf/object.proto", function(err, builder) {
     var Status = Obj.Status;
 
     var player = new Obj(1, new Position(0, 0), Status.IDLE);
-
     console.log(player, player.encode(), player.toArrayBuffer());
 
-    player.position.x = 10;
-    player.position.y = 20;
+    var board = document.getElementById("board");
 
-    var decodedPlayer = Obj.decode(player.toArrayBuffer());
-    console.log(decodedPlayer, decodedPlayer.encode(), decodedPlayer.toArrayBuffer());
+    function updatePlayer() {
+        player.position.x = parseInt(Math.random() * 1000);
+        player.position.y = parseInt(Math.random() * 1000);
+
+        var decodedPlayer = Obj.decode(player.toArrayBuffer());
+        //console.log(decodedPlayer, decodedPlayer.encode(), decodedPlayer.toArrayBuffer());
+
+        board.innerHTML = JSON.stringify(player.toRaw());
+
+        setTimeout(updatePlayer, 1000);
+    }
+
+    updatePlayer();
 });
