@@ -43,8 +43,8 @@ var game = {
     me.state.set(me.state.PLAY, new game.PlayScreen());
 
     // add our player entity in the entity pool
-    me.pool.register("mainPlayer", game.PlayerEntity);
-    me.pool.register("blah", game.PlayerEntity);
+    me.pool.register("mainPlayer", game.LocalPlayerEntity);
+    me.pool.register("NPC", game.PlayerEntity);
 
 
     //! Adicionado por causa do tutorial
@@ -55,9 +55,5 @@ var game = {
 
     // Start the game.
     me.state.change(me.state.PLAY);
-  },
-
-  controlMainPlayer: function() {
-
   }
 };

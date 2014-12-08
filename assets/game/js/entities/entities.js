@@ -30,51 +30,7 @@ game.PlayerEntity = me.Entity.extend({
    * update the entity
    */
   update : function (dt) {
-
-        /* OBS
-         * Acho que essa parte pode ser externa, tanto para o player local quanto para o remoto
-         * Ou seja a implementação será a mesma
-         * somente faz body.update e collision check
-         */
-
-        /* OBS this.flipX trocado por this.renderable.flipX
-         * procure por flipX em http://blog.ciangames.com/2014/11/upgrading-to-melonjs-20.html
-         */
-        if (me.input.isKeyPressed('left')) {
-            // flip the sprite on horizontal axis
-            this.renderable.flipX(true);
-            // update the entity velocity
-            this.body.vel.x -= this.body.accel.x * me.timer.tick;
-            // change to the walking animation
-            if (!this.renderable.isCurrentAnimation("walk")) {
-                this.renderable.setCurrentAnimation("walk");
-            }
-        } else if (me.input.isKeyPressed('right')) {
-            // unflip the sprite
-            this.renderable.flipX(false);
-            // update the entity velocity
-            this.body.vel.x += this.body.accel.x * me.timer.tick;
-            // change to the walking animation
-            if (!this.renderable.isCurrentAnimation("walk")) {
-                this.renderable.setCurrentAnimation("walk");
-            }
-        } else {
-            this.body.vel.x = 0;
-            // change to the standing animation
-            this.renderable.setCurrentAnimation("stand");
-        }
-
-        if (me.input.isKeyPressed('jump')) {
-            // make sure we are not already jumping or falling
-            if (!this.body.jumping && !this.body.falling) {
-                // set current vel to the maximum defined value
-                // gravity will then do the rest
-                this.body.vel.y = -this.body.maxVel.y * me.timer.tick;
-                // set the jumping flag
-                this.body.jumping = true;
-            }
-        }
-
+    this.updatePosition();
 
     // apply physics to the body (this moves the entity)
     this.body.update(dt);
@@ -92,6 +48,70 @@ game.PlayerEntity = me.Entity.extend({
      */
   onCollision : function (response, other) {
     // Make all other objects solid
+    if (other.name == 'npc') {
+      return false;
+    }
+
+    if (this.name == 'npc' && other.type == 'spike') {
+      me.game.world.removeChild(this);
+    }
+
+    if (other.type == 'spike') {
+      this.renderable.flicker(750);
+    }
+
     return true;
+  },
+
+  updatePosition: function() {
+  }
+});
+
+
+game.LocalPlayerEntity = game.PlayerEntity.extend({
+  updatePosition: function () {
+    /* OBS
+     * Acho que essa parte pode ser externa, tanto para o player local quanto para o remoto
+     * Ou seja a implementação será a mesma
+     * somente faz body.update e collision check
+     */
+
+    /* OBS this.flipX trocado por this.renderable.flipX
+     * procure por flipX em http://blog.ciangames.com/2014/11/upgrading-to-melonjs-20.html
+     */
+    if (me.input.isKeyPressed('left')) {
+        // flip the sprite on horizontal axis
+        this.renderable.flipX(true);
+        // update the entity velocity
+        this.body.vel.x -= this.body.accel.x * me.timer.tick;
+        // change to the walking animation
+        if (!this.renderable.isCurrentAnimation("walk")) {
+            this.renderable.setCurrentAnimation("walk");
+        }
+    } else if (me.input.isKeyPressed('right')) {
+        // unflip the sprite
+        this.renderable.flipX(false);
+        // update the entity velocity
+        this.body.vel.x += this.body.accel.x * me.timer.tick;
+        // change to the walking animation
+        if (!this.renderable.isCurrentAnimation("walk")) {
+            this.renderable.setCurrentAnimation("walk");
+        }
+    } else {
+        this.body.vel.x = 0;
+        // change to the standing animation
+        this.renderable.setCurrentAnimation("stand");
+    }
+
+    if (me.input.isKeyPressed('jump')) {
+        // make sure we are not already jumping or falling
+        if (!this.body.jumping && !this.body.falling) {
+            // set current vel to the maximum defined value
+            // gravity will then do the rest
+            this.body.vel.y = -this.body.maxVel.y * me.timer.tick;
+            // set the jumping flag
+            this.body.jumping = true;
+        }
+    }
   }
 });
