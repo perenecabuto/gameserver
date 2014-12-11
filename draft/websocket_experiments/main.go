@@ -16,6 +16,7 @@ var (
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
+		CheckOrigin:     func(r *http.Request) bool { return true },
 	}
 
 	pingPeriod  = time.Second * 1
@@ -26,10 +27,6 @@ var (
 func main() {
 	flag.Parse()
 	log.Println("Staring WebSocket server at ", *addr)
-
-	upgrader.CheckOrigin = func(r *http.Request) bool {
-		return true
-	}
 
 	http.Handle("/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/ws", WebSocketServer)
