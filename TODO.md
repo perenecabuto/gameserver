@@ -8,3 +8,6 @@
 
 # Desenhar jogo
     ???
+
+# Por no heroku
+    ??? Sim? Não? Talvez?
