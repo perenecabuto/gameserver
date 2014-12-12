@@ -46,11 +46,11 @@ func WebSocketServer(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		ws.Close()
 		delete(connections, ws)
-		broadcastMessage([]byte(fmt.Sprintf("%p disconnected", ws)))
+		broadcastMessage([]byte(fmt.Sprintf("[%p] %s disconnected", ws, ws.RemoteAddr())))
 		log.Println("WS connection finished")
 	}()
 
-	broadcastMessage([]byte(fmt.Sprintf("%p connected", ws)))
+	broadcastMessage([]byte(fmt.Sprintf("[%p] %s connected", ws, ws.RemoteAddr())))
 
 	go sendMessage(ws)
 	go readMessage(ws)
