@@ -2,15 +2,6 @@
 // source: object.proto
 // DO NOT EDIT!
 
-/*
-Package protobuf is a generated protocol buffer package.
-
-It is generated from these files:
-	object.proto
-
-It has these top-level messages:
-	Object
-*/
 package protobuf
 
 import proto "github.com/golang/protobuf/proto"

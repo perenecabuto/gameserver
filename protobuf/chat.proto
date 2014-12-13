@@ -1,0 +1,6 @@
+package protobuf;
+
+message Chat {
+    optional string Name = 1;
+    optional string Text = 2;
+}
