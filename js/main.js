@@ -1,28 +1,53 @@
 "use strict";
 
+var conn;
+var msg = document.getElementById("log");
+var form = document.getElementById("form");
+
 var ProtoBuf = dcodeIO.ProtoBuf;
+var Chat;
 
-ProtoBuf.loadProtoFile("protobuf/object.proto", function(err, builder) {
-    var Obj = builder.build('protobuf.Object');
-    var Position = Obj.Position;
-    var Status = Obj.Status;
+ProtoBuf.loadProtoFile("protobuf/chat.proto", function(err, builder) {
+    Chat = builder.build('protobuf.Chat');
+});
 
-    var player = new Obj(1, new Position(0, 0), Status.IDLE);
-    console.log(player, player.encode(), player.toArrayBuffer());
+form.addEventListener("submit", function(e) {
+    e.preventDefault();
 
-    var board = document.getElementById("board");
+    if (conn && form.msg.value) {
+        var player_message = new Chat('user', form.msg.value);
 
-    function updatePlayer() {
-        player.position.x = parseInt(Math.random() * 1000);
-        player.position.y = parseInt(Math.random() * 1000);
+        console.log(player_message);
 
-        var decodedPlayer = Obj.decode(player.toArrayBuffer());
-        //console.log(decodedPlayer, decodedPlayer.encode(), decodedPlayer.toArrayBuffer());
+        var buffer = player_message.encode();
 
-        board.innerHTML = JSON.stringify(player.toRaw());
+        conn.send(buffer.toArrayBuffer());
 
-        setTimeout(updatePlayer, 1000);
+        form.msg.value = "";
+    } else {
+        console.log("Could not send message connection or message is in invalid state");
     }
 
-    updatePlayer();
+    return false;
 });
+
+function connect() {
+    conn = new WebSocket("ws://localhost:4000/ws");
+
+    conn.onopen = function() {
+        msg.innerHTML = "<h1>Connection opened</h1>";
+    };
+
+    conn.onmessage = function(evt) {
+        var decoded_message = Chat.decode(evt.data);
+        msg.innerHTML += decoded_message + "\n";
+        // msg.innerHTML += evt.data + "\n";
+    };
+
+    conn.onclose = function(evt) {
+        setTimeout(connect, 1000);
+        msg.innerHTML = "<h1>Connection closed.</h1>";
+    };
+}
+
+connect();
