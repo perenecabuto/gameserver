@@ -45,7 +45,7 @@ func WebSocketServer(w http.ResponseWriter, r *http.Request) {
 	connections[ws] = true
 
 	go ListenWSMessage(ws)
-	go ListentAndBroadcastMessage(ws)
+	go BroadcastMessage(ws)
 
 	data, _ := proto.Marshal(&protobuf.Chat{
 		Name: proto.String(ws.RemoteAddr().String()),
@@ -95,7 +95,7 @@ func ListenWSMessage(ws *websocket.Conn) {
 	}
 }
 
-func ListentAndBroadcastMessage(ws *websocket.Conn) {
+func BroadcastMessage(ws *websocket.Conn) {
 	for {
 		select {
 		case message, ok := <-broadcast:
