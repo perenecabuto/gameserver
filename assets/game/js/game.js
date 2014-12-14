@@ -42,10 +42,18 @@ var game = {
     me.state.set(me.state.MENU, new game.TitleScreen());
     me.state.set(me.state.PLAY, new game.PlayScreen());
 
-    // add our player entity in the entity pool
-    me.pool.register("mainPlayer", game.LocalPlayerEntity);
-    me.pool.register("NPC", game.PlayerEntity);
+    me.pool.register("NPC", game.PlayerEntity, true);
+    me.pool.register("mainPlayer", game.LocalPlayerEntity, true);
 
+    function spaw() {
+        var npc = me.pool.pull("NPC", Math.random() * 1000, 1);
+        me.game.world.addChild(npc);
+        setInterval(function() {
+            npc.pos.x -= 5;
+        }, 100);
+    }
+
+    for (var i = 0; i < 10; i++) setTimeout(spaw, i * 1000);
 
     //! Adicionado por causa do tutorial
     // enable the keyboard

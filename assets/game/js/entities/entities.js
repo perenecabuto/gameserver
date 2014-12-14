@@ -7,8 +7,18 @@ game.PlayerEntity = me.Entity.extend({
    * constructor
    */
   init:function (x, y, settings) {
+    game.PlayerEntity.defaultSettings = game.PlayerEntity.defaultSettings || settings;
+    //settings = settings || {height: 64, width: 32, spritewidth: 64, spriteheight: 64, "image":"gripe_run_right"};
+    //settings = settings || {"name":"NPC","x":512,"y":288,"z":4,"width":32,"height":64,"gid":null,"rotation":0,"orientation":"orthogonal","isEllipse":false,"isPolygon":false,"isPolyLine":false,"image":"gripe_run_right","spritewidth":64};
+
+    if (!settings) {
+        settings = game.PlayerEntity.defaultSettings || {};
+        settings.name = 'npc';
+    }
+
     // call the constructor
-    this._super(me.Entity, 'init', [x, y , settings]);
+    //{"name":"mainPlayer","x":32,"y":288,"z":4,"width":32,"height":64,"gid":null,"rotation":0,"orientation":"orthogonal","isEllipse":false,"isPolygon":false,"isPolyLine":false,"image":"gripe_run_right","spritewidth":64}
+    this._super(me.Entity, 'init', [x, y, settings]);
 
     // set the display to follow our position on both axis
     me.game.viewport.follow(this.pos, me.game.viewport.AXIS.BOTH);
@@ -64,6 +74,7 @@ game.PlayerEntity = me.Entity.extend({
   },
 
   updatePosition: function() {
+        // update the entity velocity
   }
 });
 

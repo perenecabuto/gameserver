@@ -3,10 +3,9 @@ game.PlayScreen = me.ScreenObject.extend({
      *  action to perform on state change
      */
     onResetEvent: function() {
-
-      //! Changed for tutorial
-      // load level
-      me.levelDirector.loadLevel("scenario");
+        //! Changed for tutorial
+        // load level
+        me.levelDirector.loadLevel("scenario");
 
         // reset the score
         game.data.score = 0;
