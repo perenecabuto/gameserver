@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/golang/protobuf/proto"
-	"github.com/gorilla/websocket"
-	"github.com/perenecabuto/gameserver/protobuf"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/gorilla/websocket"
+	"github.com/perenecabuto/gameserver/protobuf"
 )
 
 var (
@@ -37,19 +38,12 @@ func main() {
 
 func WebSocketServer(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
-	connections[ws] = true
-
 	if err != nil {
 		log.Println("WS connection failed: ", err)
 		return
 	}
-
-	defer func() {
-		ws.Close()
-		delete(connections, ws)
-		broadcastMessage([]byte(fmt.Sprintf("[%p] %s disconnected", ws, ws.RemoteAddr())))
-		log.Println("WS connection finished")
-	}()
+	defer closeConnection(ws)
+	connections[ws] = true
 
 	broadcastMessage([]byte(fmt.Sprintf("[%p] %s connected", ws, ws.RemoteAddr())))
 
@@ -57,6 +51,13 @@ func WebSocketServer(w http.ResponseWriter, r *http.Request) {
 	go readMessage(ws)
 
 	ping(ws)
+}
+
+func closeConnection(ws *websocket.Conn) {
+	ws.Close()
+	delete(connections, ws)
+	broadcastMessage([]byte(fmt.Sprintf("[%p] %s disconnected", ws, ws.RemoteAddr())))
+	log.Println("WS connection finished")
 }
 
 func readMessage(ws *websocket.Conn) {
