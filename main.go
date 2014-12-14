@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	addr = flag.String("addr", ":3000", "http service address")
+	addr = flag.String("addr", ":3001", "http service address")
 
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -29,8 +29,9 @@ func main() {
 	flag.Parse()
 	log.Println("Staring WebSocket server at ", *addr)
 
-	http.Handle("/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/ws", WebSocketServer)
+	http.Handle("/protobuf/", http.FileServer(http.Dir(".")))
+	http.Handle("/", http.FileServer(http.Dir("assets/game/")))
 
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }
