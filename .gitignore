@@ -23,6 +23,10 @@ _testmain.go
 *.test
 *.prof
 
+# Bower/Node
+node_modules
+bower_components
+
 gin-bin
 
 gameserver
