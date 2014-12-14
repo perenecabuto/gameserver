@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -27,12 +29,21 @@ var (
 
 func main() {
 	flag.Parse()
-	log.Println("Staring WebSocket server at ", *addr)
 
-	http.Handle("/", http.FileServer(http.Dir(".")))
-	http.HandleFunc("/ws", WebSocketServer)
+	if !strings.Contains(".", *addr) {
+		*addr = "0.0.0.0" + *addr
+	}
 
+	log.Println(fmt.Sprintf("Starting WebSocket server at http://%s", *addr))
+
+	Routes()
 	log.Fatal(http.ListenAndServe(*addr, nil))
+}
+
+func Routes() {
+	http.Handle("/", http.FileServer(http.Dir("webroot")))
+	http.Handle("/protobuf/", http.StripPrefix("/protobuf/", http.FileServer(http.Dir("protobuf"))))
+	http.HandleFunc("/ws", WebSocketServer)
 }
 
 func WebSocketServer(w http.ResponseWriter, r *http.Request) {
