@@ -44,15 +44,14 @@ func WebSocketServer(w http.ResponseWriter, r *http.Request) {
 	defer closeConnection(ws)
 	connections[ws] = true
 
+	go ListenWSMessage(ws)
+	go ListentAndBroadcastMessage(ws)
+
 	data, _ := proto.Marshal(&protobuf.Chat{
 		Name: proto.String(ws.RemoteAddr().String()),
 		Text: proto.String("connected"),
 	})
-
-	broadcastMessage(data)
-
-	go sendMessage(ws)
-	go readMessage(ws)
+	broadcast <- data
 
 	ping(ws)
 }
@@ -66,18 +65,19 @@ func closeConnection(ws *websocket.Conn) {
 		Text: proto.String("disconnected"),
 	})
 
-	broadcastMessage(data)
+	broadcast <- data
 
 	log.Println("WS connection finished")
 }
 
-func readMessage(ws *websocket.Conn) {
+func ListenWSMessage(ws *websocket.Conn) {
 	//ws.SetReadLimit(maxMessageSize)
 	//ws.SetReadDeadline(time.Now().Add(pongWait))
 	//ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
 	for {
 		_, message, err := ws.ReadMessage()
+		println(message)
 		if err != nil {
 			break
 		}
@@ -95,7 +95,7 @@ func readMessage(ws *websocket.Conn) {
 	}
 }
 
-func sendMessage(ws *websocket.Conn) {
+func ListentAndBroadcastMessage(ws *websocket.Conn) {
 	for {
 		select {
 		case message, ok := <-broadcast:
@@ -104,15 +104,9 @@ func sendMessage(ws *websocket.Conn) {
 				return
 			}
 
-			broadcastMessage(message)
-		}
-	}
-}
-
-func broadcastMessage(message []byte) {
-	for ws := range connections {
-		if err := ws.WriteMessage(websocket.BinaryMessage, message); err != nil {
-			return
+			for ws := range connections {
+				go ws.WriteMessage(websocket.BinaryMessage, message)
+			}
 		}
 	}
 }
