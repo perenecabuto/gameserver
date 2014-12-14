@@ -1,0 +1,47 @@
+{
+  "name": "gameserver",
+  "version": "0.0.1",
+  "homepage": "https://github.com/perenecabuto/gameserver",
+  "authors": [
+    "Perene Cabuto",
+    "Daniel Mascarenhas"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.1",
+    "protobuf": "~3.8.2"
+  },
+  "install" : {
+    "path" : {
+      "css": "webroot/static/vendor/css",
+      "js": "webroot/static/vendor/js",
+      "map": "webroot/static/vendor/js"
+    },
+    "sources" : {
+      "jquery" : [
+        "bower_components/jquery/dist/jquery.min.js",
+        "bower_components/jquery/dist/jquery.min.map"
+      ],
+      "long" : [
+        "bower_components/long/dist/Long.min.js",
+        "bower_components/long/dist/Long.min.map"
+      ],
+      "bytebuffer" : [
+        "bower_components/bytebuffer/dist/ByteBufferAB.min.js",
+        "bower_components/bytebuffer/dist/ByteBufferAB.min.map"
+      ],
+      "protobuf" : [
+        "bower_components/protobuf/dist/ProtoBuf.min.js",
+        "bower_components/protobuf/dist/ProtoBuf.min.map"
+      ]
+    }
+  }
+}

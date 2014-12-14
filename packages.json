@@ -1,0 +1,15 @@
+{
+  "name": "gameserver",
+  "version": "0.0.1",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/perenecabuto/gameserver"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/perenecabuto/gameserver/issues"
+  },
+  "homepage": "https://github.com/perenecabuto/gameserver"
+}
