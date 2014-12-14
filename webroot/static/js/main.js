@@ -5,20 +5,15 @@ var msg = document.getElementById("log");
 var form = document.getElementById("form");
 
 var ProtoBuf = dcodeIO.ProtoBuf;
-var Chat;
-
-ProtoBuf.loadProtoFile("protobuf/chat.proto", function(err, builder) {
-    Chat = builder.build('protobuf.Chat');
-});
+var ChatMessage = ProtoBuf.loadProtoFile("protobuf/chat.proto").build("protobuf.ChatMessage");
 
 form.addEventListener("submit", function(e) {
     e.preventDefault();
 
     if (conn && form.msg.value) {
-        var player_message = new Chat('user', form.msg.value);
-        var buffer = player_message.encode();
+        var player_message = new ChatMessage('user', form.msg.value);
 
-        conn.send(buffer.toArrayBuffer());
+        conn.send(player_message.toArrayBuffer());
 
         form.msg.value = "";
     } else {
@@ -37,8 +32,8 @@ function connect() {
     };
 
     conn.onmessage = function(evt) {
-        var message = Chat.decode(evt.data);
-        msg.innerHTML += message.name + ": " + message.text + "\n";
+        var message = ChatMessage.decode(evt.data);
+        msg.innerHTML += "<strong>&lt;" + message.name + "&gt;</strong> " + message.text + "\n";
     };
 
     conn.onclose = function(evt) {
