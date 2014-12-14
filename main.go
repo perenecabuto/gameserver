@@ -48,20 +48,24 @@ func Routes() {
 
 func WebSocketServer(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
+
 	if err != nil {
 		log.Println("WS connection failed: ", err)
 		return
 	}
+
 	defer closeConnection(ws)
 	connections[ws] = true
 
 	go ListenWSMessage(ws)
 	go BroadcastMessage(ws)
 
-	data, _ := proto.Marshal(&protobuf.Chat{
-		Name: proto.String(ws.RemoteAddr().String()),
-		Text: proto.String("connected"),
+	data, _ := proto.Marshal(&protobuf.ChatMessage{
+		Name:        proto.String(ws.RemoteAddr().String()),
+		Text:        proto.String(fmt.Sprintf("[%p] connected", ws)),
+		MessageType: protobuf.ChatMessage_CONNECTION.Enum(),
 	})
+
 	broadcast <- data
 
 	ping(ws)
@@ -71,9 +75,10 @@ func closeConnection(ws *websocket.Conn) {
 	ws.Close()
 	delete(connections, ws)
 
-	data, _ := proto.Marshal(&protobuf.Chat{
-		Name: proto.String(ws.RemoteAddr().String()),
-		Text: proto.String("disconnected"),
+	data, _ := proto.Marshal(&protobuf.ChatMessage{
+		Name:        proto.String(ws.RemoteAddr().String()),
+		Text:        proto.String(fmt.Sprintf("[%p] disconnected", ws)),
+		MessageType: protobuf.ChatMessage_DISCONNECTION.Enum(),
 	})
 
 	broadcast <- data
@@ -88,13 +93,17 @@ func ListenWSMessage(ws *websocket.Conn) {
 
 	for {
 		_, message, err := ws.ReadMessage()
+
 		println(message)
+
 		if err != nil {
 			break
 		}
 
-		receivedChat := new(protobuf.Chat)
+		receivedChat := new(protobuf.ChatMessage)
+
 		err = proto.Unmarshal(message, receivedChat)
+
 		if err != nil {
 			log.Fatal("unmarshaling error: ", err)
 		}
