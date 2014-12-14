@@ -1,6 +1,14 @@
 package protobuf;
 
-message Chat {
-    optional string name = 1;
-    optional string text = 2;
+message ChatMessage {
+    required string name = 1;
+    required string text = 2;
+
+    enum MessageType {
+        MESSAGE = 0;
+        CONNECTION = 1;
+        DISCONNECTION = 2;
+    }
+
+    required MessageType messageType = 3 [default = MESSAGE];
 }
