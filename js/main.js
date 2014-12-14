@@ -16,9 +16,6 @@ form.addEventListener("submit", function(e) {
 
     if (conn && form.msg.value) {
         var player_message = new Chat('user', form.msg.value);
-
-        console.log(player_message);
-
         var buffer = player_message.encode();
 
         conn.send(buffer.toArrayBuffer());
@@ -33,15 +30,15 @@ form.addEventListener("submit", function(e) {
 
 function connect() {
     conn = new WebSocket("ws://localhost:4000/ws");
+    conn.binaryType = "arraybuffer";
 
     conn.onopen = function() {
         msg.innerHTML = "<h1>Connection opened</h1>";
     };
 
     conn.onmessage = function(evt) {
-        var decoded_message = Chat.decode(evt.data);
-        msg.innerHTML += decoded_message + "\n";
-        // msg.innerHTML += evt.data + "\n";
+        var message = Chat.decode(evt.data);
+        msg.innerHTML += message.name + ": " + message.text + "\n";
     };
 
     conn.onclose = function(evt) {

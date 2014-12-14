@@ -22,8 +22,8 @@ var _ = proto.Marshal
 var _ = math.Inf
 
 type Chat struct {
-	Name             *string `protobuf:"bytes,1,opt" json:"Name,omitempty"`
-	Text             *string `protobuf:"bytes,2,opt" json:"Text,omitempty"`
+	Name             *string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+	Text             *string `protobuf:"bytes,2,opt,name=text" json:"text,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
 

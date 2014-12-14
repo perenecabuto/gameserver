@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -45,7 +44,12 @@ func WebSocketServer(w http.ResponseWriter, r *http.Request) {
 	defer closeConnection(ws)
 	connections[ws] = true
 
-	broadcastMessage([]byte(fmt.Sprintf("[%p] %s connected", ws, ws.RemoteAddr())))
+	data, _ := proto.Marshal(&protobuf.Chat{
+		Name: proto.String(ws.RemoteAddr().String()),
+		Text: proto.String("connected"),
+	})
+
+	broadcastMessage(data)
 
 	go sendMessage(ws)
 	go readMessage(ws)
@@ -56,7 +60,14 @@ func WebSocketServer(w http.ResponseWriter, r *http.Request) {
 func closeConnection(ws *websocket.Conn) {
 	ws.Close()
 	delete(connections, ws)
-	broadcastMessage([]byte(fmt.Sprintf("[%p] %s disconnected", ws, ws.RemoteAddr())))
+
+	data, _ := proto.Marshal(&protobuf.Chat{
+		Name: proto.String(ws.RemoteAddr().String()),
+		Text: proto.String("disconnected"),
+	})
+
+	broadcastMessage(data)
+
 	log.Println("WS connection finished")
 }
 
@@ -67,14 +78,12 @@ func readMessage(ws *websocket.Conn) {
 
 	for {
 		_, message, err := ws.ReadMessage()
-
 		if err != nil {
 			break
 		}
 
 		receivedChat := new(protobuf.Chat)
 		err = proto.Unmarshal(message, receivedChat)
-
 		if err != nil {
 			log.Fatal("unmarshaling error: ", err)
 		}
@@ -102,7 +111,7 @@ func sendMessage(ws *websocket.Conn) {
 
 func broadcastMessage(message []byte) {
 	for ws := range connections {
-		if err := ws.WriteMessage(websocket.TextMessage, message); err != nil {
+		if err := ws.WriteMessage(websocket.BinaryMessage, message); err != nil {
 			return
 		}
 	}
