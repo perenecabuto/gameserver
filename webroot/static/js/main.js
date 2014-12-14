@@ -32,8 +32,21 @@ function connect() {
     };
 
     conn.onmessage = function(evt) {
-        var message = ChatMessage.decode(evt.data);
-        msg.innerHTML += "<strong>&lt;" + message.name + "&gt;</strong> " + message.text + "\n";
+        var data = ChatMessage.decode(evt.data);
+        var message;
+
+        switch (data.getMessageType()) {
+            case 1:
+                message = '<strong style="color: green">User ' + data.getName() + " connected</strong>\n"
+                break;
+            case 2:
+                message = '<strong style="color: red">User ' + data.getName() + " disconnected</strong>\n"
+                break;
+            default:
+                message = "<strong>&lt;" + data.getName() + "&gt;</strong> " + data.getText() + "\n"
+        }
+
+        msg.innerHTML += message;
     };
 
     conn.onclose = function(evt) {
