@@ -24,7 +24,7 @@ form.addEventListener("submit", function(e) {
 });
 
 function connect() {
-    conn = new WebSocket("ws://localhost:4000/ws");
+    conn = new WebSocket("ws://" + window.location.host + "/ws");
     conn.binaryType = "arraybuffer";
 
     conn.onopen = function() {
