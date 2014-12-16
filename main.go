@@ -35,10 +35,12 @@ func main() {
 		*addr = "0.0.0.0" + *addr
 	}
 
-	log.Println(fmt.Sprintf("Starting WebSocket server at http://%s", *addr))
+	log.Println(fmt.Sprintf("Starting Secure WebSocket server at https://%s", *addr))
 
 	Routes()
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	// ListenAndServeTLS
+	log.Fatal(http.ListenAndServeTLS(*addr, "myCA.cer", "myCA.key", nil))
+	// log.Fatal(http.ListenAndServe(*addr, nil))
 }
 
 func Routes() {
