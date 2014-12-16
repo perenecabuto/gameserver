@@ -2,7 +2,7 @@
 
 run:
 	@go build
-	@./gameserver -addr :4000
+	@./gameserver
 
 install_protoc_linux:
 	@sudo aptitude install protobuf-compiler

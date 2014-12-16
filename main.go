@@ -1,11 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
+	"os"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -14,8 +15,15 @@ import (
 	"github.com/perenecabuto/gameserver/protobuf"
 )
 
+type Configuration struct {
+	Address         string `json:"addr"`
+	Port            string `json:"port"`
+	CertificateFile string `json:"certFile"`
+	KeyFile         string `json:"keyFile"`
+}
+
 var (
-	addr = flag.String("addr", ":3000", "http service address")
+	configFile = flag.String("config", "config.json", "configuration file")
 
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -31,16 +39,41 @@ var (
 func main() {
 	flag.Parse()
 
-	if !strings.Contains(".", *addr) {
-		*addr = "0.0.0.0" + *addr
+	config, err := ReadConfiguration()
+
+	if err != nil {
+		log.Fatal("error starting: ", err)
 	}
 
-	log.Println(fmt.Sprintf("Starting Secure WebSocket server at https://%s", *addr))
+	serverAddress := fmt.Sprintf("%s:%s", config.Address, config.Port)
 
 	Routes()
-	// ListenAndServeTLS
-	log.Fatal(http.ListenAndServeTLS(*addr, "myCA.cer", "myCA.key", nil))
-	// log.Fatal(http.ListenAndServe(*addr, nil))
+
+	if config.CertificateFile != "" && config.KeyFile != "" {
+		log.Println(fmt.Sprintf("Starting Secure WebSocket server at https://%s", serverAddress))
+		log.Fatal(http.ListenAndServeTLS(serverAddress, config.CertificateFile, config.KeyFile, nil))
+	} else {
+		log.Println(fmt.Sprintf("Starting WebSocket server at http://%s", serverAddress))
+		log.Fatal(http.ListenAndServe(serverAddress, nil))
+	}
+}
+
+func ReadConfiguration() (*Configuration, error) {
+	file, err := os.Open(*configFile)
+	configuration := Configuration{}
+
+	if err == nil {
+		log.Println("Reading config:", *configFile)
+
+		decoder := json.NewDecoder(file)
+		err := decoder.Decode(&configuration)
+
+		if err != nil {
+			log.Fatal("json error: ", err)
+		}
+	}
+
+	return &configuration, err
 }
 
 func Routes() {
