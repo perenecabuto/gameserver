@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/perenecabuto/gameserver/protobuf"
 )
@@ -41,9 +42,13 @@ func main() {
 }
 
 func Routes() {
-	http.Handle("/", http.FileServer(http.Dir("webroot")))
-	http.Handle("/protobuf/", http.StripPrefix("/protobuf/", http.FileServer(http.Dir("protobuf"))))
-	http.HandleFunc("/ws", WebSocketServer)
+	router := mux.NewRouter()
+
+	router.PathPrefix("/protobuf/").Handler(http.StripPrefix("/protobuf/", http.FileServer(http.Dir("protobuf/"))))
+	router.HandleFunc("/ws", WebSocketServer)
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("webroot/")))
+
+	http.Handle("/", router)
 }
 
 func WebSocketServer(w http.ResponseWriter, r *http.Request) {
