@@ -1,6 +1,6 @@
 package protobuf;
 
-message Object {
+message GameMessage {
   enum Status {
     IDLE = 0;
     MOVING = 1;

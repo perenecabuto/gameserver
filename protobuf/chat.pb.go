@@ -7,7 +7,7 @@ Package protobuf is a generated protocol buffer package.
 
 It is generated from these files:
 	chat.proto
-	object.proto
+	game.proto
 
 It has these top-level messages:
 	ChatMessage

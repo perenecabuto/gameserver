@@ -1,21 +1,33 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
+	"os"
 	"time"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/pat-go/pat.go"
 	"github.com/perenecabuto/gameserver/protobuf"
 )
 
+type Configuration struct {
+	Address         string `json:"addr"`
+	Port            string `json:"port"`
+	CertificateFile string `json:"certFile"`
+	KeyFile         string `json:"keyFile"`
+	UseTLS          bool   `json:"useTLS"`
+}
+
+type Broadcast chan []byte
+type ConnectionMap map[*websocket.Conn]bool
+
 var (
-	addr = flag.String("addr", ":3001", "http service address")
+	configFile = flag.String("config", "config.json", "configuration file")
 
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -23,50 +35,79 @@ var (
 		CheckOrigin:     func(r *http.Request) bool { return true },
 	}
 
-	pingPeriod  = time.Second * 1
-	broadcast   = make(chan []byte)
-	connections = make(map[*websocket.Conn]bool)
+	pingPeriod = time.Second * 1
 )
 
 func main() {
 	flag.Parse()
 
-	if !strings.Contains(".", *addr) {
-		*addr = "0.0.0.0" + *addr
+	config, err := ReadConfiguration()
+
+	if err != nil {
+		log.Fatal("error starting: ", err)
 	}
 
-	log.Println(fmt.Sprintf("Starting WebSocket server at http://%s", *addr))
+	serverAddress := fmt.Sprintf("%s:%s", config.Address, config.Port)
 
-	m := Routes()
-	log.Fatal(http.ListenAndServe(*addr, m))
+	Routes()
+
+	if config.UseTLS {
+		log.Println(fmt.Sprintf("Starting Secure WebSocket server at https://%s", serverAddress))
+		log.Fatal(http.ListenAndServeTLS(serverAddress, config.CertificateFile, config.KeyFile, nil))
+	} else {
+		log.Println(fmt.Sprintf("Starting WebSocket server at http://%s", serverAddress))
+		log.Fatal(http.ListenAndServe(serverAddress, nil))
+	}
 }
 
-func Routes() *pat.PatternServeMux {
-	m := pat.New()
-	m.Get("/ws/game", http.HandlerFunc(GameServer))
-	m.Get("/ws/chat", http.HandlerFunc(ChatServer))
-	m.Get("/protobuf/", http.StripPrefix("/protobuf/", http.FileServer(http.Dir("protobuf"))))
-	m.Get("/", http.FileServer(http.Dir("webroot")))
+func ReadConfiguration() (*Configuration, error) {
+	file, err := os.Open(*configFile)
+	configuration := Configuration{}
 
-	return m
+	if err == nil {
+		log.Println("Reading config:", *configFile)
+
+		decoder := json.NewDecoder(file)
+		err := decoder.Decode(&configuration)
+
+		if err != nil {
+			log.Fatal("json error: ", err)
+		}
+	}
+
+	return &configuration, err
 }
 
-func GameServer(w http.ResponseWriter, r *http.Request) {
+func Routes() {
+	router := mux.NewRouter()
+
+	router.PathPrefix("/protobuf/").Handler(http.StripPrefix("/protobuf/", http.FileServer(http.Dir("protobuf/"))))
+
+	router.Handle("/ws/chat", &WebSocketServer{make(ConnectionMap), make(Broadcast)})
+	router.Handle("/ws/game", &WebSocketServer{make(ConnectionMap), make(Broadcast)})
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("webroot/")))
+
+	http.Handle("/", router)
 }
 
-func ChatServer(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
+type WebSocketServer struct {
+	connections ConnectionMap
+	broadcast   Broadcast
+}
+
+func (w *WebSocketServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(rw, r, nil)
 
 	if err != nil {
 		log.Println("WS connection failed: ", err)
 		return
 	}
 
-	defer closeConnection(ws)
-	connections[ws] = true
+	defer w.closeConnection(ws)
+	w.connections[ws] = true
 
-	go ListenWSMessage(ws)
-	go BroadcastMessage(ws)
+	go w.ListenWSMessage(ws)
+	go w.BroadcastMessage(ws)
 
 	data, _ := proto.Marshal(&protobuf.ChatMessage{
 		Name:        proto.String(ws.RemoteAddr().String()),
@@ -74,14 +115,14 @@ func ChatServer(w http.ResponseWriter, r *http.Request) {
 		MessageType: protobuf.ChatMessage_CONNECTION.Enum(),
 	})
 
-	broadcast <- data
+	w.broadcast <- data
 
-	ping(ws)
+	w.ping(ws)
 }
 
-func closeConnection(ws *websocket.Conn) {
+func (w *WebSocketServer) closeConnection(ws *websocket.Conn) {
 	ws.Close()
-	delete(connections, ws)
+	delete(w.connections, ws)
 
 	data, _ := proto.Marshal(&protobuf.ChatMessage{
 		Name:        proto.String(ws.RemoteAddr().String()),
@@ -89,12 +130,12 @@ func closeConnection(ws *websocket.Conn) {
 		MessageType: protobuf.ChatMessage_DISCONNECTION.Enum(),
 	})
 
-	broadcast <- data
+	w.broadcast <- data
 
 	log.Println("WS connection finished")
 }
 
-func ListenWSMessage(ws *websocket.Conn) {
+func (w *WebSocketServer) ListenWSMessage(ws *websocket.Conn) {
 	//ws.SetReadLimit(maxMessageSize)
 	//ws.SetReadDeadline(time.Now().Add(pongWait))
 	//ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
@@ -108,38 +149,29 @@ func ListenWSMessage(ws *websocket.Conn) {
 			break
 		}
 
-		receivedChat := new(protobuf.ChatMessage)
+		log.Println("message_data:", message)
 
-		err = proto.Unmarshal(message, receivedChat)
-
-		if err != nil {
-			log.Fatal("unmarshaling error: ", err)
-		}
-
-		log.Println("[encoded_message] data:", message)
-		log.Println("[decoded_message] user: ", receivedChat.GetName(), " text: ", receivedChat.GetText())
-
-		broadcast <- message
+		w.broadcast <- message
 	}
 }
 
-func BroadcastMessage(ws *websocket.Conn) {
+func (w *WebSocketServer) BroadcastMessage(ws *websocket.Conn) {
 	for {
 		select {
-		case message, ok := <-broadcast:
+		case message, ok := <-w.broadcast:
 			if !ok {
 				ws.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
-			for ws := range connections {
+			for ws := range w.connections {
 				go ws.WriteMessage(websocket.BinaryMessage, message)
 			}
 		}
 	}
 }
 
-func ping(ws *websocket.Conn) {
+func (w *WebSocketServer) ping(ws *websocket.Conn) {
 	ticker := time.NewTicker(pingPeriod)
 	defer ticker.Stop()
 
