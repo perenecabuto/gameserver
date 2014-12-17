@@ -21,9 +21,9 @@
   },
   "install" : {
     "path" : {
-      "css": "webroot/static/vendor/css",
-      "js": "webroot/static/vendor/js",
-      "map": "webroot/static/vendor/js"
+      "css": "webroot/vendor/css",
+      "js": "webroot/vendor/js",
+      "map": "webroot/vendor/js"
     },
     "sources" : {
       "jquery" : [

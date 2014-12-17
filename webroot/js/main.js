@@ -52,6 +52,6 @@ var Chat = {
             that.msg.innerHTML = "<h1>Connection closed.</h1>";
         };
     }
-}
+};
 
 Chat.init();
