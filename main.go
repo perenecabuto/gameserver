@@ -10,11 +10,12 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
+	"github.com/pat-go/pat.go"
 	"github.com/perenecabuto/gameserver/protobuf"
 )
 
 var (
-	addr = flag.String("addr", ":3000", "http service address")
+	addr = flag.String("addr", ":3001", "http service address")
 
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -36,17 +37,24 @@ func main() {
 
 	log.Println(fmt.Sprintf("Starting WebSocket server at http://%s", *addr))
 
-	Routes()
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	m := Routes()
+	log.Fatal(http.ListenAndServe(*addr, m))
 }
 
-func Routes() {
-	http.Handle("/", http.FileServer(http.Dir("webroot")))
-	http.Handle("/protobuf/", http.StripPrefix("/protobuf/", http.FileServer(http.Dir("protobuf"))))
-	http.HandleFunc("/ws", WebSocketServer)
+func Routes() *pat.PatternServeMux {
+	m := pat.New()
+	m.Get("/ws/game", http.HandlerFunc(GameServer))
+	m.Get("/ws/chat", http.HandlerFunc(ChatServer))
+	m.Get("/protobuf/", http.StripPrefix("/protobuf/", http.FileServer(http.Dir("protobuf"))))
+	m.Get("/", http.FileServer(http.Dir("webroot")))
+
+	return m
 }
 
-func WebSocketServer(w http.ResponseWriter, r *http.Request) {
+func GameServer(w http.ResponseWriter, r *http.Request) {
+}
+
+func ChatServer(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
