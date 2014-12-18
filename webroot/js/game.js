@@ -53,5 +53,9 @@ var game = {
 
     // Start the game.
     me.state.change(me.state.PLAY);
+
+
+Chat.init();
+Game.init();
   }
 };

@@ -7,7 +7,7 @@ game.PlayerEntity = me.Entity.extend({
    * constructor
    */
   init:function (x, y, settings) {
-    settings = game.PlayerEntity.defaultSettings || {};
+    settings = game.PlayerEntity.defaultSettings;
     settings.name = 'npc';
 
     // call the constructor

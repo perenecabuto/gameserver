@@ -20,22 +20,34 @@ var Game = {
             //that.msg.innerHTML = "<h1>New User in game</h1>";
 
             //setInterval(function() { npc.pos.x -= 5; }, 100);
-            var buffer= new ChatMessage('user', "A new player has connected").encode();
-            that.conn.send(buffer.toArrayBuffer());
+            //var buffer = new GameMessage('user', "A new player has connected").encode();
+            //that.conn.send(buffer.toArrayBuffer());
         };
 
         this.conn.onmessage = function(evt) {
-            //var message = GameMessage.decode(evt.data);
-            //console.log(message);
-            var player = new game.PlayerEntity(parseInt(Math.random() * 1000), 10);
-            me.game.world.addChild(player, 4);
-            me.game.world.sort(true);
-            that.player = player;
+            var message = GameMessage.decode(evt.data);
+            var player = new game.PlayerEntity(message.position.x, message.position.y);
+
+            switch (message.action) {
+                case GameMessage.Action.SPAWN:
+                    me.game.world.addChild(player, 4);
+                    me.game.world.sort(true);
+                    that.player = player;
+                    break;
+                case GameMessage.Action.MOVING:
+                    that.player.pos.x = message.position.x;
+                    that.player.pos.y = message.position.y;
+                    break;
+                case GameMessage.Action.DEAD:
+                    me.game.world.removeChild(that.player);
+                    me.game.world.sort(true);
+                    that.player = null;
+                    break;
+            }
         };
 
         this.conn.onclose = function(evt) {
-            setTimeout(that.connect, 1000);
-            me.game.world.removeChild(that.player);
+            setTimeout(function() { that.connect(); }, 1000);
         };
     }
 };
@@ -87,6 +99,3 @@ var Chat = {
         };
     }
 };
-
-Chat.init();
-Game.init();

@@ -5,6 +5,7 @@ message GameMessage {
     SPAWN = 0;
     IDLE = 1;
     MOVING = 2;
+    DEAD = 4;
   }
 
   message Position {

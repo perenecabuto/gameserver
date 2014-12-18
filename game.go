@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"github.com/perenecabuto/gameserver/protobuf"
@@ -24,16 +26,12 @@ func NewGameServer() *WebSocketServer {
 func (m *GameManager) OnOpen(ws *websocket.Conn) []byte {
 	defer func() { m.currentId++ }()
 
-	m.sendPlayerStatus(ws)
-
 	message := &protobuf.GameMessage{
 		Id:       proto.Int32(m.currentId),
 		Position: &protobuf.GameMessage_Position{X: proto.Int32(1), Y: proto.Int32(10)},
 		Action:   protobuf.GameMessage_SPAWN.Enum(),
 	}
-
 	data, _ := proto.Marshal(message)
-
 	message.Action = protobuf.GameMessage_IDLE.Enum()
 	m.players[*message.Id] = &PlayerConnection{ws, message}
 
@@ -41,15 +39,41 @@ func (m *GameManager) OnOpen(ws *websocket.Conn) []byte {
 }
 
 func (m *GameManager) OnMessage(ws *websocket.Conn, message []byte) {
+	data := &protobuf.GameMessage{}
+	proto.Unmarshal(message, data)
+	player, ok := m.players[*data.Id]
+	if !ok {
+		return
+	}
+
+	player.LastMessage = data
+	newMessage, _ := proto.Marshal(data)
+	m.broadcastMessage(newMessage)
 }
 
 func (m *GameManager) OnClose(ws *websocket.Conn) {
-	//delete(players, id)
+	player := m.playerByWS(ws)
+	player.LastMessage.Action = protobuf.GameMessage_DEAD.Enum()
+	message, _ := proto.Marshal(player.LastMessage)
+
+	log.Println("Removing ws: ", player.LastMessage)
+	delete(m.players, *player.LastMessage.Id)
+
+	m.broadcastMessage(message)
 }
 
-func (m *GameManager) sendPlayerStatus(ws *websocket.Conn) {
+func (m *GameManager) playerByWS(ws *websocket.Conn) *PlayerConnection {
 	for _, player := range m.players {
-		message, _ := proto.Marshal(player.LastMessage)
-		ws.WriteMessage(websocket.BinaryMessage, message)
+		if player.Conn == ws {
+			return player
+		}
+	}
+
+	return nil
+}
+
+func (m *GameManager) broadcastMessage(message []byte) {
+	for _, player := range m.players {
+		player.Conn.WriteMessage(websocket.BinaryMessage, message)
 	}
 }

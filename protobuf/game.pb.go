@@ -17,17 +17,20 @@ const (
 	GameMessage_SPAWN  GameMessage_Action = 0
 	GameMessage_IDLE   GameMessage_Action = 1
 	GameMessage_MOVING GameMessage_Action = 2
+	GameMessage_DEAD   GameMessage_Action = 4
 )
 
 var GameMessage_Action_name = map[int32]string{
 	0: "SPAWN",
 	1: "IDLE",
 	2: "MOVING",
+	4: "DEAD",
 }
 var GameMessage_Action_value = map[string]int32{
 	"SPAWN":  0,
 	"IDLE":   1,
 	"MOVING": 2,
+	"DEAD":   4,
 }
 
 func (x GameMessage_Action) Enum() *GameMessage_Action {

@@ -83,7 +83,10 @@ func (w *WebSocketServer) broadcastMessage(ws *websocket.Conn) {
 }
 
 func (w *WebSocketServer) closeConnection(ws *websocket.Conn) {
-	defer ws.Close()
+	defer func() {
+		ws.WriteMessage(websocket.CloseMessage, []byte{})
+		ws.Close()
+	}()
 	w.OnClose(ws)
 	log.Println("WS connection finished")
 }
