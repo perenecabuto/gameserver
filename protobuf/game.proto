@@ -1,9 +1,10 @@
 package protobuf;
 
 message GameMessage {
-  enum Status {
-    IDLE = 0;
-    MOVING = 1;
+  enum Action {
+    SPAWN = 0;
+    IDLE = 1;
+    MOVING = 2;
   }
 
   message Position {
@@ -13,5 +14,5 @@ message GameMessage {
 
   required int32 id = 1;
   required Position position = 2;
-  required Status status = 3;
+  required Action action = 3;
 }

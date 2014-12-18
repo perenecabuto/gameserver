@@ -45,17 +45,6 @@ var game = {
     me.pool.register("mainPlayer", game.LocalPlayerEntity, true);
     //me.pool.register("NPC", game.PlayerEntity, true);
 
-    var x = 0;
-    function spaw() {
-        var npc = new game.PlayerEntity(parseInt(Math.random() * 1000), 10);
-        me.game.world.addChild(npc, 4);
-        me.game.world.sort(true);
-        //me.game.world.removeChild(npc);
-        //setInterval(function() { npc.pos.x -= 5; }, 100);
-    }
-
-    for (var i = 0; i < 10; i++) setTimeout(spaw, i * 1000);
-
     //! Adicionado por causa do tutorial
     // enable the keyboard
     me.input.bindKey(me.input.KEY.LEFT,  "left");

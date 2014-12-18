@@ -38,11 +38,16 @@ var (
 	pingPeriod = time.Second * 1
 )
 
+type WebSocketServer struct {
+	connections ConnectionMap
+	broadcast   Broadcast
+	OnOpen      func(*websocket.Conn) []byte
+}
+
 func main() {
 	flag.Parse()
 
 	config, err := ReadConfiguration()
-
 	if err != nil {
 		log.Fatal("error starting: ", err)
 	}
@@ -60,22 +65,21 @@ func main() {
 	}
 }
 
-func ReadConfiguration() (*Configuration, error) {
-	file, err := os.Open(*configFile)
-	configuration := Configuration{}
+func ReadConfiguration() (conf *Configuration, err error) {
+	conf = &Configuration{}
 
-	if err == nil {
+	var file *os.File
+	if file, err = os.Open(*configFile); err == nil {
 		log.Println("Reading config:", *configFile)
 
 		decoder := json.NewDecoder(file)
-		err := decoder.Decode(&configuration)
 
-		if err != nil {
-			log.Fatal("json error: ", err)
+		if err = decoder.Decode(&conf); err != nil {
+			return
 		}
 	}
 
-	return &configuration, err
+	return
 }
 
 func Routes() {
@@ -83,16 +87,11 @@ func Routes() {
 
 	router.PathPrefix("/protobuf/").Handler(http.StripPrefix("/protobuf/", http.FileServer(http.Dir("protobuf/"))))
 
-	router.Handle("/ws/chat", &WebSocketServer{make(ConnectionMap), make(Broadcast)})
-	router.Handle("/ws/game", &WebSocketServer{make(ConnectionMap), make(Broadcast)})
+	router.Handle("/ws/chat", &WebSocketServer{make(ConnectionMap), make(Broadcast), ChatOnOpen})
+	router.Handle("/ws/game", &WebSocketServer{make(ConnectionMap), make(Broadcast), GameOnOpen})
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("webroot/")))
 
 	http.Handle("/", router)
-}
-
-type WebSocketServer struct {
-	connections ConnectionMap
-	broadcast   Broadcast
 }
 
 func (w *WebSocketServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -109,15 +108,28 @@ func (w *WebSocketServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	go w.ListenWSMessage(ws)
 	go w.BroadcastMessage(ws)
 
+	w.broadcast <- w.OnOpen(ws)
+	w.ping(ws)
+}
+
+func ChatOnOpen(ws *websocket.Conn) []byte {
 	data, _ := proto.Marshal(&protobuf.ChatMessage{
 		Name:        proto.String(ws.RemoteAddr().String()),
 		Text:        proto.String(fmt.Sprintf("[%p] connected", ws)),
 		MessageType: protobuf.ChatMessage_CONNECTION.Enum(),
 	})
 
-	w.broadcast <- data
+	return data
+}
 
-	w.ping(ws)
+func GameOnOpen(ws *websocket.Conn) []byte {
+	data, _ := proto.Marshal(&protobuf.GameMessage{
+		Id:       proto.Int32(10),
+		Position: &protobuf.GameMessage_Position{X: proto.Int32(1), Y: proto.Int32(10)},
+		Action:   protobuf.GameMessage_SPAWN.Enum(),
+	})
+
+	return data
 }
 
 func (w *WebSocketServer) closeConnection(ws *websocket.Conn) {

@@ -11,43 +11,46 @@ import math "math"
 var _ = proto.Marshal
 var _ = math.Inf
 
-type GameMessage_Status int32
+type GameMessage_Action int32
 
 const (
-	GameMessage_IDLE   GameMessage_Status = 0
-	GameMessage_MOVING GameMessage_Status = 1
+	GameMessage_SPAWN  GameMessage_Action = 0
+	GameMessage_IDLE   GameMessage_Action = 1
+	GameMessage_MOVING GameMessage_Action = 2
 )
 
-var GameMessage_Status_name = map[int32]string{
-	0: "IDLE",
-	1: "MOVING",
+var GameMessage_Action_name = map[int32]string{
+	0: "SPAWN",
+	1: "IDLE",
+	2: "MOVING",
 }
-var GameMessage_Status_value = map[string]int32{
-	"IDLE":   0,
-	"MOVING": 1,
+var GameMessage_Action_value = map[string]int32{
+	"SPAWN":  0,
+	"IDLE":   1,
+	"MOVING": 2,
 }
 
-func (x GameMessage_Status) Enum() *GameMessage_Status {
-	p := new(GameMessage_Status)
+func (x GameMessage_Action) Enum() *GameMessage_Action {
+	p := new(GameMessage_Action)
 	*p = x
 	return p
 }
-func (x GameMessage_Status) String() string {
-	return proto.EnumName(GameMessage_Status_name, int32(x))
+func (x GameMessage_Action) String() string {
+	return proto.EnumName(GameMessage_Action_name, int32(x))
 }
-func (x *GameMessage_Status) UnmarshalJSON(data []byte) error {
-	value, err := proto.UnmarshalJSONEnum(GameMessage_Status_value, data, "GameMessage_Status")
+func (x *GameMessage_Action) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(GameMessage_Action_value, data, "GameMessage_Action")
 	if err != nil {
 		return err
 	}
-	*x = GameMessage_Status(value)
+	*x = GameMessage_Action(value)
 	return nil
 }
 
 type GameMessage struct {
 	Id               *int32                `protobuf:"varint,1,req,name=id" json:"id,omitempty"`
 	Position         *GameMessage_Position `protobuf:"bytes,2,req,name=position" json:"position,omitempty"`
-	Status           *GameMessage_Status   `protobuf:"varint,3,req,name=status,enum=protobuf.GameMessage_Status" json:"status,omitempty"`
+	Action           *GameMessage_Action   `protobuf:"varint,3,req,name=action,enum=protobuf.GameMessage_Action" json:"action,omitempty"`
 	XXX_unrecognized []byte                `json:"-"`
 }
 
@@ -69,11 +72,11 @@ func (m *GameMessage) GetPosition() *GameMessage_Position {
 	return nil
 }
 
-func (m *GameMessage) GetStatus() GameMessage_Status {
-	if m != nil && m.Status != nil {
-		return *m.Status
+func (m *GameMessage) GetAction() GameMessage_Action {
+	if m != nil && m.Action != nil {
+		return *m.Action
 	}
-	return GameMessage_IDLE
+	return GameMessage_SPAWN
 }
 
 type GameMessage_Position struct {
@@ -101,5 +104,5 @@ func (m *GameMessage_Position) GetY() int32 {
 }
 
 func init() {
-	proto.RegisterEnum("protobuf.GameMessage_Status", GameMessage_Status_name, GameMessage_Status_value)
+	proto.RegisterEnum("protobuf.GameMessage_Action", GameMessage_Action_name, GameMessage_Action_value)
 }
