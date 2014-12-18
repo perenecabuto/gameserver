@@ -42,7 +42,7 @@ game.PlayerEntity = me.Entity.extend({
 
     // apply physics to the body (this moves the entity)
     this.body.update(dt);
-    this.updateBounds();
+    //this.updateBounds();
 
     //if (this.pos.y > 280) this.pos.y = 280;
  

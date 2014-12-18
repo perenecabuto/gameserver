@@ -59,7 +59,6 @@ var Game = {
                             console.log(message.position.x, child.pos.x)
                             child.pos.x = message.position.x;
                             child.pos.y = message.position.y;
-                            child.updatePosition();
                             me.game.world.sort(true);
                             break;
                         }
