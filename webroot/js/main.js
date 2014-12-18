@@ -13,7 +13,7 @@ var Game = {
 
         this.connect();
 
-        window.addEventListener("keydown", function() {
+        me.event.subscribe("mainPlayerMovement", function(x, y) {
             var buffer = new GameMessage({
                 id: that.player.name,
                 action: GameMessage.Action.MOVING,
@@ -21,7 +21,7 @@ var Game = {
             }).encode();
 
             that.conn.send(buffer.toArrayBuffer());
-        });
+        })
     },
 
     connect: function() {
@@ -56,7 +56,6 @@ var Game = {
                         var child = me.game.world.children[i];
 
                         if (parseInt(child.name) == message.id) {
-                            console.log(message.position.x, child.pos.x)
                             child.pos.x = message.position.x;
                             child.pos.y = message.position.y;
                             me.game.world.sort(true);

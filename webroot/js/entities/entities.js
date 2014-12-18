@@ -62,6 +62,10 @@ game.PlayerEntity = me.Entity.extend({
       //me.game.world.removeChild(this);
     }
 
+    if (other.type == 'spike') {
+      this.renderable.flicker(750);
+    }
+
     return true;
   },
 
@@ -94,7 +98,10 @@ game.LocalPlayerEntity = game.PlayerEntity.extend({
     /* OBS this.flipX trocado por this.renderable.flipX
      * procure por flipX em http://blog.ciangames.com/2014/11/upgrading-to-melonjs-20.html
      */
+    var hasMoved = false;
+
     if (me.input.isKeyPressed('left')) {
+        hasMoved = true;
         // flip the sprite on horizontal axis
         this.renderable.flipX(true);
         // update the entity velocity
@@ -104,6 +111,7 @@ game.LocalPlayerEntity = game.PlayerEntity.extend({
             this.renderable.setCurrentAnimation("walk");
         }
     } else if (me.input.isKeyPressed('right')) {
+        hasMoved = true;
         // unflip the sprite
         this.renderable.flipX(false);
         // update the entity velocity
@@ -119,6 +127,7 @@ game.LocalPlayerEntity = game.PlayerEntity.extend({
     }
 
     if (me.input.isKeyPressed('jump')) {
+        hasMoved = true;
         // make sure we are not already jumping or falling
         if (!this.body.jumping && !this.body.falling) {
             // set current vel to the maximum defined value
@@ -127,6 +136,10 @@ game.LocalPlayerEntity = game.PlayerEntity.extend({
             // set the jumping flag
             this.body.jumping = true;
         }
+    }
+
+    if (hasMoved) {
+        me.event.publish("mainPlayerMovement", [this.pos.x, this.pos.y]);
     }
   },
   onCollision : function (response, other) {
