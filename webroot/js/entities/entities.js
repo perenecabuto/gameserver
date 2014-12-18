@@ -59,7 +59,7 @@ game.PlayerEntity = me.Entity.extend({
      */
   onCollision : function (response, other) {
     if (this.name == 'npc' && other.type == 'spike') {
-      me.game.world.removeChild(this);
+      //me.game.world.removeChild(this);
     }
 
     return true;

@@ -16,7 +16,7 @@ var Game = {
         this.conn = new WebSocket("ws://" + location.host + "/ws/game");
         this.conn.binaryType = "arraybuffer";
 
-        this.conn.onopen = function() {
+        this.conn.onopen = function(evt) {
             //that.msg.innerHTML = "<h1>New User in game</h1>";
 
             //setInterval(function() { npc.pos.x -= 5; }, 100);
@@ -34,7 +34,7 @@ var Game = {
         };
 
         this.conn.onclose = function(evt) {
-            setTimeout(connect, 1000);
+            setTimeout(that.connect, 1000);
             me.game.world.removeChild(that.player);
         };
     }
@@ -82,7 +82,7 @@ var Chat = {
         };
 
         this.conn.onclose = function(evt) {
-            setTimeout(connect, 1000);
+            setTimeout(that.connect, 1000);
             that.msg.innerHTML = "<h1>Connection closed.</h1>";
         };
     }
