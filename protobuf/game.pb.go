@@ -14,22 +14,25 @@ var _ = math.Inf
 type GameMessage_Action int32
 
 const (
-	GameMessage_SPAWN  GameMessage_Action = 0
-	GameMessage_IDLE   GameMessage_Action = 1
-	GameMessage_MOVING GameMessage_Action = 2
+	GameMessage_NEW    GameMessage_Action = 0
+	GameMessage_SPAWN  GameMessage_Action = 1
+	GameMessage_IDLE   GameMessage_Action = 2
+	GameMessage_MOVING GameMessage_Action = 3
 	GameMessage_DEAD   GameMessage_Action = 4
 )
 
 var GameMessage_Action_name = map[int32]string{
-	0: "SPAWN",
-	1: "IDLE",
-	2: "MOVING",
+	0: "NEW",
+	1: "SPAWN",
+	2: "IDLE",
+	3: "MOVING",
 	4: "DEAD",
 }
 var GameMessage_Action_value = map[string]int32{
-	"SPAWN":  0,
-	"IDLE":   1,
-	"MOVING": 2,
+	"NEW":    0,
+	"SPAWN":  1,
+	"IDLE":   2,
+	"MOVING": 3,
 	"DEAD":   4,
 }
 
@@ -79,7 +82,7 @@ func (m *GameMessage) GetAction() GameMessage_Action {
 	if m != nil && m.Action != nil {
 		return *m.Action
 	}
-	return GameMessage_SPAWN
+	return GameMessage_NEW
 }
 
 type GameMessage_Position struct {

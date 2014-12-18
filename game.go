@@ -29,12 +29,16 @@ func (m *GameManager) OnOpen(ws *websocket.Conn) []byte {
 	message := &protobuf.GameMessage{
 		Id:       proto.Int32(m.currentId),
 		Position: &protobuf.GameMessage_Position{X: proto.Int32(1), Y: proto.Int32(10)},
-		Action:   protobuf.GameMessage_SPAWN.Enum(),
+		Action:   protobuf.GameMessage_NEW.Enum(),
 	}
+
 	data, _ := proto.Marshal(message)
+	ws.WriteMessage(websocket.BinaryMessage, data)
 	message.Action = protobuf.GameMessage_IDLE.Enum()
 	m.players[*message.Id] = &PlayerConnection{ws, message}
 
+	message.Action = protobuf.GameMessage_SPAWN.Enum()
+	data, _ = proto.Marshal(message)
 	return data
 }
 

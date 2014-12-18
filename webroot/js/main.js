@@ -8,7 +8,20 @@ var GameMessage = ProtoBuf.loadProtoFile("/protobuf/game.proto").build('protobuf
 
 var Game = {
     init: function () {
+        var that = this;
+        this.players = {};
+
         this.connect();
+
+        window.addEventListener("keydown", function() {
+            var buffer = new GameMessage({
+                id: that.player.name,
+                action: GameMessage.Action.MOVING,
+                position: {x: parseInt(that.player.pos.x), y: parseInt(that.player.pos.y)}
+            }).encode();
+
+            that.conn.send(buffer.toArrayBuffer());
+        });
     },
 
     connect: function() {
@@ -17,31 +30,50 @@ var Game = {
         this.conn.binaryType = "arraybuffer";
 
         this.conn.onopen = function(evt) {
-            //that.msg.innerHTML = "<h1>New User in game</h1>";
-
-            //setInterval(function() { npc.pos.x -= 5; }, 100);
-            //var buffer = new GameMessage('user', "A new player has connected").encode();
-            //that.conn.send(buffer.toArrayBuffer());
         };
 
         this.conn.onmessage = function(evt) {
             var message = GameMessage.decode(evt.data);
-            var player = new game.PlayerEntity(message.position.x, message.position.y);
+            if (that.player && message.id === that.player.name) return;
 
             switch (message.action) {
+                case GameMessage.Action.NEW:
+                    for (var i in me.game.world.children) {
+                        var child = me.game.world.children[i];
+                        if (child.name == 'mainplayer') {
+                            that.player = child;
+                            that.player.name = message.id;
+                        }
+                    }
+                    break;
                 case GameMessage.Action.SPAWN:
+                    var player = new game.PlayerEntity(message.id, message.position.x, message.position.y);
                     me.game.world.addChild(player, 4);
                     me.game.world.sort(true);
-                    that.player = player;
                     break;
                 case GameMessage.Action.MOVING:
-                    that.player.pos.x = message.position.x;
-                    that.player.pos.y = message.position.y;
+                    for (var i in me.game.world.children) {
+                        var child = me.game.world.children[i];
+
+                        if (parseInt(child.name) == message.id) {
+                            console.log(message.position.x, child.pos.x)
+                            child.pos.x = message.position.x;
+                            child.pos.y = message.position.y;
+                            child.updatePosition();
+                            me.game.world.sort(true);
+                            break;
+                        }
+                    }
                     break;
                 case GameMessage.Action.DEAD:
-                    me.game.world.removeChild(that.player);
-                    me.game.world.sort(true);
-                    that.player = null;
+                    for (var i in me.game.world.children) {
+                        var child = me.game.world.children[i];
+                        if (child.name == message.id) {
+                            me.game.world.removeChild(child);
+                            me.game.world.sort(true);
+                            break;
+                        }
+                    }
                     break;
             }
         };

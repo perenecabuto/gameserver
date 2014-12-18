@@ -2,9 +2,10 @@ package protobuf;
 
 message GameMessage {
   enum Action {
-    SPAWN = 0;
-    IDLE = 1;
-    MOVING = 2;
+    NEW = 0;
+    SPAWN = 1;
+    IDLE = 2;
+    MOVING = 3;
     DEAD = 4;
   }
 
