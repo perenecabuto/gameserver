@@ -38,40 +38,24 @@ var Game = {
 
             switch (message.action) {
                 case GameMessage.Action.NEW:
-                    for (var i in me.game.world.children) {
-                        var child = me.game.world.children[i];
-                        if (child.name == 'mainplayer') {
-                            that.player = child;
-                            that.player.name = message.id;
-                        }
-                    }
+                    that.player = me.game.world.getChildByName('mainplayer')[0];
+                    that.player.name = message.id;
                     break;
                 case GameMessage.Action.SPAWN:
                     var player = new game.PlayerEntity(message.id, message.position.x, message.position.y);
                     me.game.world.addChild(player, 4);
-                    me.game.world.sort(true);
                     break;
                 case GameMessage.Action.MOVING:
-                    for (var i in me.game.world.children) {
-                        var child = me.game.world.children[i];
-
-                        if (parseInt(child.name) == message.id) {
-                            child.pos.x = message.position.x;
-                            child.pos.y = message.position.y;
-                            me.game.world.sort(true);
-                            break;
-                        }
-                    }
+                    var player = me.game.world.getChildByName(message.id)[0];
+                    player.pos.x = message.position.x;
+                    player.pos.y = message.position.y;
+                    player.body.vel.x = 0;
+                    player.body.vel.y = 0;
+                    me.game.world.sort(true);
                     break;
                 case GameMessage.Action.DEAD:
-                    for (var i in me.game.world.children) {
-                        var child = me.game.world.children[i];
-                        if (child.name == message.id) {
-                            me.game.world.removeChild(child);
-                            me.game.world.sort(true);
-                            break;
-                        }
-                    }
+                    var player = me.game.world.getChildByName(message.id)[0];
+                    me.game.world.removeChild(player);
                     break;
             }
         };

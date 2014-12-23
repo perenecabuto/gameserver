@@ -18,16 +18,16 @@ func NewChatServer() *WebSocketServer {
 	return NewWebSocketServer(manager)
 }
 
-func (c *ChatManager) OnOpen(ws *websocket.Conn) []byte {
+func (c *ChatManager) OnOpen(ws *websocket.Conn) {
 	c.connections[ws] = true
 
-	data, _ := proto.Marshal(&protobuf.ChatMessage{
+	message := &protobuf.ChatMessage{
 		Name:        proto.String(ws.RemoteAddr().String()),
 		Text:        proto.String(fmt.Sprintf("[%p] connected", ws)),
 		MessageType: protobuf.ChatMessage_CONNECTION.Enum(),
-	})
+	}
 
-	return data
+	c.sendChatMessage(message)
 }
 
 func (c *ChatManager) OnMessage(ws *websocket.Conn, message []byte) {
@@ -37,13 +37,18 @@ func (c *ChatManager) OnMessage(ws *websocket.Conn, message []byte) {
 func (c *ChatManager) OnClose(ws *websocket.Conn) {
 	delete(c.connections, ws)
 
-	data, _ := proto.Marshal(&protobuf.ChatMessage{
+	message := &protobuf.ChatMessage{
 		Name:        proto.String(ws.RemoteAddr().String()),
 		Text:        proto.String(fmt.Sprintf("[%p] disconnected", ws)),
 		MessageType: protobuf.ChatMessage_DISCONNECTION.Enum(),
-	})
+	}
 
-	c.sendMessage(data)
+	c.sendChatMessage(message)
+}
+
+func (c *ChatManager) sendChatMessage(chatMessage *protobuf.ChatMessage) {
+	message, _ := proto.Marshal(chatMessage)
+	c.sendMessage(message)
 }
 
 func (c *ChatManager) sendMessage(message []byte) {

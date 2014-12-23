@@ -11,7 +11,7 @@ import (
 type Broadcast chan []byte
 
 type WebSocketManager interface {
-	OnOpen(*websocket.Conn) []byte
+	OnOpen(*websocket.Conn)
 	OnClose(*websocket.Conn)
 	OnMessage(*websocket.Conn, []byte)
 }
@@ -47,7 +47,7 @@ func (w *WebSocketServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	go w.listenWSMessage(ws)
 	go w.broadcastMessage(ws)
 
-	w.broadcast <- w.OnOpen(ws)
+	w.OnOpen(ws)
 	w.ping(ws)
 }
 

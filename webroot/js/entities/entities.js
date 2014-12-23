@@ -18,9 +18,9 @@ game.PlayerEntity = me.Entity.extend({
     // ensure the player is updated even when outside of the viewport
     this.alwaysUpdate = true;
 
-    this.body.setCollisionType = me.collision.types.PLAYER_OBJECT;
-    this.body.setCollisionMask(me.collision.types.WORLD_SHAPE | me.collision.types.ENEMY_OBJECT | me.collision.types.COLLECTABLE_OBJECT);
-    this.collidable = true;
+    //this.body.setCollisionType = me.collision.types.PLAYER_OBJECT;
+    //this.body.setCollisionMask(me.collision.types.WORLD_SHAPE | me.collision.types.ENEMY_OBJECT | me.collision.types.COLLECTABLE_OBJECT);
+    //this.collidable = true;
     //this.z = 4
 
     // set the default horizontal & vertical speed (accel vector)
@@ -42,7 +42,6 @@ game.PlayerEntity = me.Entity.extend({
 
     // apply physics to the body (this moves the entity)
     this.body.update(dt);
-    //this.updateBounds();
 
     //if (this.pos.y > 280) this.pos.y = 280;
  
@@ -58,12 +57,14 @@ game.PlayerEntity = me.Entity.extend({
      * (called when colliding with other objects)
      */
   onCollision : function (response, other) {
-    if (this.name == 'npc' && other.type == 'spike') {
-      //me.game.world.removeChild(this);
+    if (typeof(other.name) == 'string' && other.name.match(/\d+/)) {
+        this.body.vel.x = 0;
+        return false;
     }
 
     if (other.type == 'spike') {
       this.renderable.flicker(750);
+      return false;
     }
 
     return true;
@@ -141,21 +142,5 @@ game.LocalPlayerEntity = game.PlayerEntity.extend({
     if (hasMoved) {
         me.event.publish("mainPlayerMovement", [this.pos.x, this.pos.y]);
     }
-  },
-  onCollision : function (response, other) {
-    // Make all other objects solid
-    if (other.name == 'npc') {
-      return false;
-    }
-
-    if (this.name == 'npc' && other.type == 'spike') {
-      me.game.world.removeChild(this);
-    }
-
-    if (other.type == 'spike') {
-      this.renderable.flicker(750);
-    }
-
-    return true;
   }
 });

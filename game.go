@@ -23,55 +23,50 @@ func NewGameServer() *WebSocketServer {
 	return NewWebSocketServer(manager)
 }
 
-func (m *GameManager) OnOpen(ws *websocket.Conn) []byte {
+func (m *GameManager) OnOpen(ws *websocket.Conn) {
 	defer func() { m.currentId++ }()
 
+	// Send new player his start data
 	message := &protobuf.GameMessage{
 		Id:       proto.Int32(m.currentId),
-		Position: &protobuf.GameMessage_Position{X: proto.Int32(1), Y: proto.Int32(10)},
+		Position: &protobuf.GameMessage_Position{X: proto.Int32(100), Y: proto.Int32(200)},
 		Action:   protobuf.GameMessage_NEW.Enum(),
 	}
 
 	data, _ := proto.Marshal(message)
 	ws.WriteMessage(websocket.BinaryMessage, data)
 
-	for _, player := range m.players {
-		m := proto.Clone(player.LastMessage).(*protobuf.GameMessage)
-		m.Action = protobuf.GameMessage_SPAWN.Enum()
-		d, _ := proto.Marshal(m)
-		ws.WriteMessage(websocket.BinaryMessage, d)
-	}
+	m.spawnRemotePlayers(ws)
 
-	message.Action = protobuf.GameMessage_IDLE.Enum()
+	// Add new player to players collection
 	m.players[*message.Id] = &PlayerConnection{ws, message}
 
+	// Notify all players about new player
+	message = proto.Clone(message).(*protobuf.GameMessage)
 	message.Action = protobuf.GameMessage_SPAWN.Enum()
-	data, _ = proto.Marshal(message)
-	return data
+	m.broadcastMessage(message)
 }
 
-func (m *GameManager) OnMessage(ws *websocket.Conn, message []byte) {
-	data := &protobuf.GameMessage{}
-	proto.Unmarshal(message, data)
-	player, ok := m.players[*data.Id]
+func (m *GameManager) OnMessage(ws *websocket.Conn, data []byte) {
+	message := &protobuf.GameMessage{}
+	proto.Unmarshal(data, message)
+	player, ok := m.players[*message.Id]
 	if !ok {
 		return
 	}
 
-	player.LastMessage = data
-	newMessage, _ := proto.Marshal(data)
-	m.broadcastMessage(newMessage)
+	player.LastMessage = message
+	m.broadcastMessage(message)
 }
 
 func (m *GameManager) OnClose(ws *websocket.Conn) {
 	player := m.playerByWS(ws)
 	player.LastMessage.Action = protobuf.GameMessage_DEAD.Enum()
-	message, _ := proto.Marshal(player.LastMessage)
 
 	log.Println("Removing ws: ", player.LastMessage)
 	delete(m.players, *player.LastMessage.Id)
 
-	m.broadcastMessage(message)
+	m.broadcastMessage(player.LastMessage)
 }
 
 func (m *GameManager) playerByWS(ws *websocket.Conn) *PlayerConnection {
@@ -84,8 +79,22 @@ func (m *GameManager) playerByWS(ws *websocket.Conn) *PlayerConnection {
 	return nil
 }
 
-func (m *GameManager) broadcastMessage(message []byte) {
+func (m *GameManager) broadcastMessage(gameMessage *protobuf.GameMessage) {
+	message, _ := proto.Marshal(gameMessage)
 	for _, player := range m.players {
-		player.Conn.WriteMessage(websocket.BinaryMessage, message)
+		go player.Conn.WriteMessage(websocket.BinaryMessage, message)
+	}
+}
+
+// Notify new player about current players (with SPAWN status)
+func (m *GameManager) spawnRemotePlayers(ws *websocket.Conn) {
+	for _, player := range m.players {
+		if player.Conn == ws {
+			continue
+		}
+		m := proto.Clone(player.LastMessage).(*protobuf.GameMessage)
+		m.Action = protobuf.GameMessage_SPAWN.Enum()
+		data, _ := proto.Marshal(m)
+		ws.WriteMessage(websocket.BinaryMessage, data)
 	}
 }
