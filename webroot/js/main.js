@@ -9,6 +9,9 @@ var GameMessage = ProtoBuf.loadProtoFile("/protobuf/game.proto").build('protobuf
 var Game = {
     init: function () {
         var that = this;
+        this.msg = document.getElementById("log");
+        var form = document.getElementById("form");
+
         this.players = {};
 
         this.connect();
@@ -30,6 +33,7 @@ var Game = {
         this.conn.binaryType = "arraybuffer";
 
         this.conn.onopen = function(evt) {
+            that.msg.innerHTML += "here comes a new challenger!\n";
         };
 
         this.conn.onmessage = function(evt) {
@@ -46,11 +50,26 @@ var Game = {
                     me.game.world.addChild(player, 4);
                     break;
                 case GameMessage.Action.MOVING:
+                    console.log('me.game.world.getChildByName(' + message.id + ')[0]');
                     var player = me.game.world.getChildByName(message.id)[0];
-                    player.pos.x = message.position.x;
-                    player.pos.y = message.position.y;
-                    player.body.vel.x = 0;
-                    player.body.vel.y = 0;
+
+                    // TODO OMGWTFBBQFIXTHIS
+                    // Move eternamente para um lado ou para o outro, para preservar as animações
+                    // Talvez deva ser interceptado pelo server (unmarshall), e envie apenas: "moving" e "stop" quando for para parar
+                    if (player.pos.x - message.position.x > 0) {
+                        player.moveLeft();
+                        // player.standStill();
+                    }
+                    else {
+                        player.moveRight();
+                        // player.standStill();
+                    }
+
+                    // player.pos.x = message.position.x;
+                    // player.pos.y = message.position.y;
+
+                    // player.body.vel.x = 0;
+                    // player.body.vel.y = 0;
                     me.game.world.sort(true);
                     break;
                 case GameMessage.Action.DEAD:
