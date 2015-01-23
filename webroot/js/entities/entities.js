@@ -44,7 +44,7 @@ game.PlayerEntity = me.Entity.extend({
     this.body.update(dt);
 
     //if (this.pos.y > 280) this.pos.y = 280;
- 
+
     // handle collisions against other shapes
     me.collision.check(this);
 
@@ -71,7 +71,43 @@ game.PlayerEntity = me.Entity.extend({
   },
 
   updatePosition: function() {
+  },
+  moveLeft: function() {
+    // flip the sprite on horizontal axis
+    this.renderable.flipX(true);
+    // update the entity velocity
+    this.body.vel.x -= this.body.accel.x * me.timer.tick;
+    // change to the walking animation
+    if (!this.renderable.isCurrentAnimation("walk")) {
+        this.renderable.setCurrentAnimation("walk");
+    }
+  },
+  moveRight: function() {
+    // unflip the sprite
+    this.renderable.flipX(false);
+    // update the entity velocity
+    this.body.vel.x += this.body.accel.x * me.timer.tick;
+    // change to the walking animation
+    if (!this.renderable.isCurrentAnimation("walk")) {
+        this.renderable.setCurrentAnimation("walk");
+    }
+  },
+  standStill: function() {
+    this.body.vel.x = 0;
+    // change to the standing animation
+    this.renderable.setCurrentAnimation("stand");
+  },
+  jump: function() {
+    // make sure we are not already jumping or falling
+    if (!this.body.jumping && !this.body.falling) {
+        // set current vel to the maximum defined value
+        // gravity will then do the rest
+        this.body.vel.y = -this.body.maxVel.y * me.timer.tick;
+        // set the jumping flag
+        this.body.jumping = true;
+    }
   }
+
 });
 
 
@@ -103,40 +139,17 @@ game.LocalPlayerEntity = game.PlayerEntity.extend({
 
     if (me.input.isKeyPressed('left')) {
         hasMoved = true;
-        // flip the sprite on horizontal axis
-        this.renderable.flipX(true);
-        // update the entity velocity
-        this.body.vel.x -= this.body.accel.x * me.timer.tick;
-        // change to the walking animation
-        if (!this.renderable.isCurrentAnimation("walk")) {
-            this.renderable.setCurrentAnimation("walk");
-        }
+        this.moveLeft();
     } else if (me.input.isKeyPressed('right')) {
         hasMoved = true;
-        // unflip the sprite
-        this.renderable.flipX(false);
-        // update the entity velocity
-        this.body.vel.x += this.body.accel.x * me.timer.tick;
-        // change to the walking animation
-        if (!this.renderable.isCurrentAnimation("walk")) {
-            this.renderable.setCurrentAnimation("walk");
-        }
+        this.moveRight();
     } else {
-        this.body.vel.x = 0;
-        // change to the standing animation
-        this.renderable.setCurrentAnimation("stand");
+        this.standStill();
     }
 
     if (me.input.isKeyPressed('jump')) {
         hasMoved = true;
-        // make sure we are not already jumping or falling
-        if (!this.body.jumping && !this.body.falling) {
-            // set current vel to the maximum defined value
-            // gravity will then do the rest
-            this.body.vel.y = -this.body.maxVel.y * me.timer.tick;
-            // set the jumping flag
-            this.body.jumping = true;
-        }
+        this.jump();
     }
 
     if (hasMoved) {
