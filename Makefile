@@ -1,8 +1,11 @@
-.PHONY: update_proto, install_protoc
+.PHONY: run, update, update_proto, install_protoc
 
 run:
 	@go build
-	@./gameserver -addr :4000
+	@./gameserver
+
+update:
+	@go get -v -u
 
 install_protoc_linux:
 	@sudo aptitude install protobuf-compiler
@@ -12,3 +15,4 @@ install_protoc:
 
 update_proto:
 	@cd protobuf && protoc --go_out=. *.proto
+
