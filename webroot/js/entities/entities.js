@@ -71,6 +71,12 @@ game.PlayerEntity = me.Entity.extend({
   },
 
   updatePosition: function() {
+    if (this._stopOnX) {
+      if (this._movingTo == 'right' && this.pos.x >= this._stopOnX || this._movingTo == 'left' && this.pos.x <= this._stopOnX) {
+        this.standStill();
+        this._stopOnX = false;
+      }
+    }
   },
   moveLeft: function() {
     // flip the sprite on horizontal axis
@@ -82,6 +88,11 @@ game.PlayerEntity = me.Entity.extend({
         this.renderable.setCurrentAnimation("walk");
     }
   },
+  moveLeftTo: function(x) {
+    this._stopOnX = x;
+    this._movingTo = 'left';
+    this.moveLeft();
+  },
   moveRight: function() {
     // unflip the sprite
     this.renderable.flipX(false);
@@ -91,6 +102,11 @@ game.PlayerEntity = me.Entity.extend({
     if (!this.renderable.isCurrentAnimation("walk")) {
         this.renderable.setCurrentAnimation("walk");
     }
+  },
+  moveRightTo: function(x) {
+    this._stopOnX = x;
+    this._movingTo = 'right';
+    this.moveRight();
   },
   standStill: function() {
     this.body.vel.x = 0;

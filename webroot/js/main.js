@@ -57,12 +57,10 @@ var Game = {
                     // Move eternamente para um lado ou para o outro, para preservar as animações
                     // Talvez deva ser interceptado pelo server (unmarshall), e envie apenas: "moving" e "stop" quando for para parar
                     if (player.pos.x - message.position.x > 0) {
-                        player.moveLeft();
-                        // player.standStill();
+                        player.moveLeftTo(message.position.x);
                     }
                     else {
-                        player.moveRight();
-                        // player.standStill();
+                        player.moveRightTo(message.position.x);
                     }
 
                     // player.pos.x = message.position.x;
