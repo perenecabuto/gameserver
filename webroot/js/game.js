@@ -51,13 +51,13 @@ var game = {
     // enable the keyboard
     me.input.bindKey(me.input.KEY.LEFT,  "left");
     me.input.bindKey(me.input.KEY.RIGHT, "right");
-    me.input.bindKey(me.input.KEY.X, "jump", true);
+    me.input.bindKey(me.input.KEY.UP, "jump", true);
 
     // Start the game.
     me.state.change(me.state.PLAY);
 
 
-Chat.init();
-Game.init();
+    Chat.init();
+    Game.init();
   }
 };
