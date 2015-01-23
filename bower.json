@@ -16,29 +16,29 @@
     "tests"
   ],
   "dependencies": {
-    "jquery": "~2.1.1",
+    "jquery": "~2.1.3",
     "protobuf": "~3.8.2"
   },
-  "install" : {
-    "path" : {
+  "install": {
+    "path": {
       "css": "webroot/vendor/css",
       "js": "webroot/vendor/js",
       "map": "webroot/vendor/js"
     },
-    "sources" : {
-      "jquery" : [
+    "sources": {
+      "jquery": [
         "bower_components/jquery/dist/jquery.min.js",
         "bower_components/jquery/dist/jquery.min.map"
       ],
-      "long" : [
+      "long": [
         "bower_components/long/dist/Long.min.js",
         "bower_components/long/dist/Long.min.map"
       ],
-      "bytebuffer" : [
+      "bytebuffer": [
         "bower_components/bytebuffer/dist/ByteBufferAB.min.js",
         "bower_components/bytebuffer/dist/ByteBufferAB.min.map"
       ],
-      "protobuf" : [
+      "protobuf": [
         "bower_components/protobuf/dist/ProtoBuf.min.js",
         "bower_components/protobuf/dist/ProtoBuf.min.map"
       ]
