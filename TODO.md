@@ -11,10 +11,6 @@
 
     - ???
 
-# Por no heroku
-
-    - sim, demoro
-
 # Testar
 
 	- edge e 3g bolado
