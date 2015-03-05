@@ -17,6 +17,8 @@ var Game = {
         this.connect();
 
         me.event.subscribe("playerAction", function(action, pos) {
+            if (!that.player) return;
+
             var buffer = new GameMessage({
                 id: that.player.name,
                 action: action,
