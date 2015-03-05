@@ -16,11 +16,11 @@ var Game = {
 
         this.connect();
 
-        me.event.subscribe("mainPlayerMovement", function(x, y) {
+        me.event.subscribe("playerAction", function(action, pos) {
             var buffer = new GameMessage({
                 id: that.player.name,
-                action: GameMessage.Action.MOVING,
-                position: {x: parseInt(that.player.pos.x), y: parseInt(that.player.pos.y)}
+                action:action,
+                position: {x: parseInt(pos.x), y: parseInt(pos.y)}
             }).encode();
 
             that.conn.send(buffer.toArrayBuffer());
@@ -41,38 +41,21 @@ var Game = {
             if (that.player && message.id === that.player.name) return;
 
             switch (message.action) {
-                case GameMessage.Action.NEW:
+                case GameMessage.Action.CREATE:
                     that.player = me.game.world.getChildByName('mainplayer')[0];
                     that.player.name = message.id;
+
                     break;
                 case GameMessage.Action.SPAWN:
                     var player = new game.PlayerEntity(message.id, message.position.x, message.position.y);
                     me.game.world.addChild(player, 4);
+
                     break;
-                case GameMessage.Action.MOVING:
-                    console.log('me.game.world.getChildByName(' + message.id + ')[0]');
+                default:
                     var player = me.game.world.getChildByName(message.id)[0];
+                    console.log('player', player, 'action', message.action);
+                    player.updateAction(message.action);
 
-                    // TODO OMGWTFBBQFIXTHIS
-                    // Move eternamente para um lado ou para o outro, para preservar as animações
-                    // Talvez deva ser interceptado pelo server (unmarshall), e envie apenas: "moving" e "stop" quando for para parar
-                    if (player.pos.x - message.position.x > 0) {
-                        player.moveLeftTo(message.position.x);
-                    }
-                    else {
-                        player.moveRightTo(message.position.x);
-                    }
-
-                    // player.pos.x = message.position.x;
-                    // player.pos.y = message.position.y;
-
-                    // player.body.vel.x = 0;
-                    // player.body.vel.y = 0;
-                    me.game.world.sort(true);
-                    break;
-                case GameMessage.Action.DEAD:
-                    var player = me.game.world.getChildByName(message.id)[0];
-                    me.game.world.removeChild(player);
                     break;
             }
         };

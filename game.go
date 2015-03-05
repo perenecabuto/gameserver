@@ -30,7 +30,7 @@ func (m *GameManager) OnOpen(ws *websocket.Conn) {
 	message := &protobuf.GameMessage{
 		Id:       proto.Int32(m.currentId),
 		Position: &protobuf.GameMessage_Position{X: proto.Int32(100), Y: proto.Int32(200)},
-		Action:   protobuf.GameMessage_NEW.Enum(),
+		Action:   protobuf.GameMessage_CREATE.Enum(),
 	}
 
 	data, _ := proto.Marshal(message)
@@ -61,7 +61,7 @@ func (m *GameManager) OnMessage(ws *websocket.Conn, data []byte) {
 
 func (m *GameManager) OnClose(ws *websocket.Conn) {
 	player := m.playerByWS(ws)
-	player.LastMessage.Action = protobuf.GameMessage_DEAD.Enum()
+	player.LastMessage.Action = protobuf.GameMessage_DIE.Enum()
 
 	log.Println("Removing ws: ", player.LastMessage)
 	delete(m.players, *player.LastMessage.Id)

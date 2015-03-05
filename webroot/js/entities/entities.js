@@ -6,7 +6,7 @@ game.PlayerEntity = me.Entity.extend({
   /**
    * constructor
    */
-  init:function (name, x, y, settings) {
+  init: function (name, x, y, settings) {
     settings = game.PlayerEntity.defaultSettings;
     settings.name = String(name);
 
@@ -32,13 +32,43 @@ game.PlayerEntity = me.Entity.extend({
     this.renderable.addAnimation("stand",  [0]);
     // set the standing animation as default
     this.renderable.setCurrentAnimation("stand");
+    this.action = null;
   },
 
   /**
    * update the entity
    */
-  update : function (dt) {
+  update: function (dt) {
     this.updatePosition();
+
+    /* OBS
+     * Acho que essa parte pode ser externa, tanto para o player local quanto para o remoto
+     * Ou seja a implementação será a mesma
+     * somente faz body.update e collision check
+     */
+
+    /* OBS this.flipX trocado por this.renderable.flipX
+     * procure por flipX em http://blog.ciangames.com/2014/11/upgrading-to-melonjs-20.html
+     */
+
+    switch(this.action) {
+        case GameMessage.Action.STOP:
+          this.stop();
+          break;
+        case GameMessage.Action.MOVE_LEFT:
+          this.moveLeft();
+          break;
+        case GameMessage.Action.MOVE_RIGHT:
+          this.moveRight();
+          break;
+        case GameMessage.Action.JUMP:
+          this.jump();
+          break;
+        case GameMessage.Action.DIE:
+          this.die();
+          break;
+
+    }
 
     // apply physics to the body (this moves the entity)
     this.body.update(dt);
@@ -70,15 +100,15 @@ game.PlayerEntity = me.Entity.extend({
     return true;
   },
 
-  updatePosition: function() {
-    if (this._stopOnX) {
-      if (this._movingTo == 'right' && this.pos.x >= this._stopOnX || this._movingTo == 'left' && this.pos.x <= this._stopOnX) {
-        this.standStill();
-        this._stopOnX = false;
-      }
-    }
+  updatePosition: function () {
   },
+
+  updateAction: function(action) {
+    this.action = action;
+  },
+  // player local
   moveLeft: function() {
+    console.log('pra esquerda');
     // flip the sprite on horizontal axis
     this.renderable.flipX(true);
     // update the entity velocity
@@ -88,12 +118,10 @@ game.PlayerEntity = me.Entity.extend({
         this.renderable.setCurrentAnimation("walk");
     }
   },
-  moveLeftTo: function(x) {
-    this._stopOnX = x;
-    this._movingTo = 'left';
-    this.moveLeft();
-  },
+
+  // player local
   moveRight: function() {
+    console.log('pra direita');
     // unflip the sprite
     this.renderable.flipX(false);
     // update the entity velocity
@@ -103,73 +131,79 @@ game.PlayerEntity = me.Entity.extend({
         this.renderable.setCurrentAnimation("walk");
     }
   },
-  moveRightTo: function(x) {
-    this._stopOnX = x;
-    this._movingTo = 'right';
-    this.moveRight();
-  },
-  standStill: function() {
+
+  stop: function() {
+    console.log('parando');
     this.body.vel.x = 0;
+
     // change to the standing animation
     this.renderable.setCurrentAnimation("stand");
   },
+
   jump: function() {
+    console.log('pulando');
     // make sure we are not already jumping or falling
     if (!this.body.jumping && !this.body.falling) {
         // set current vel to the maximum defined value
         // gravity will then do the rest
         this.body.vel.y = -this.body.maxVel.y * me.timer.tick;
+
         // set the jumping flag
         this.body.jumping = true;
     }
+  },
+
+  die: function() {
+    console.log('morre');
+    me.game.world.removeChild(this);
   }
 
 });
 
 
 game.LocalPlayerEntity = game.PlayerEntity.extend({
-  init: function(x, y, settings) {
-    game.PlayerEntity.defaultSettings = settings;
-    this._super(me.Entity, 'init', [x, y, settings]);
+    init: function (x, y, settings) {
+        game.PlayerEntity.defaultSettings = settings;
+        this._super(me.Entity, 'init', [x, y, settings]);
 
-    this.body.setVelocity(3, 15);
+        this.body.setVelocity(3, 15);
 
-    // define a basic walking animation (using all frames)
-    this.renderable.addAnimation("walk",  [0, 1, 2, 3, 4, 5, 6, 7]);
-    // define a standing animation (using the first frame)
-    this.renderable.addAnimation("stand",  [0]);
-    // set the standing animation as default
-    this.renderable.setCurrentAnimation("stand");
-  },
-  updatePosition: function () {
-    /* OBS
-     * Acho que essa parte pode ser externa, tanto para o player local quanto para o remoto
-     * Ou seja a implementação será a mesma
-     * somente faz body.update e collision check
-     */
+        // define a basic walking animation (using all frames)
+        this.renderable.addAnimation("walk",  [0, 1, 2, 3, 4, 5, 6, 7]);
+        // define a standing animation (using the first frame)
+        this.renderable.addAnimation("stand",  [0]);
+        // set the standing animation as default
+        this.renderable.setCurrentAnimation("stand");
+    },
 
-    /* OBS this.flipX trocado por this.renderable.flipX
-     * procure por flipX em http://blog.ciangames.com/2014/11/upgrading-to-melonjs-20.html
-     */
-    var hasMoved = false;
+    updatePosition: function () {
+        /* OBS
+         * Acho que essa parte pode ser externa, tanto para o player local quanto para o remoto
+         * Ou seja a implementação será a mesma
+         * somente faz body.update e collision check
+         */
 
-    if (me.input.isKeyPressed('left')) {
-        hasMoved = true;
-        this.moveLeft();
-    } else if (me.input.isKeyPressed('right')) {
-        hasMoved = true;
-        this.moveRight();
-    } else {
-        this.standStill();
+        /* OBS this.flipX trocado por this.renderable.flipX
+         * procure por flipX em http://blog.ciangames.com/2014/11/upgrading-to-melonjs-20.html
+         */
+
+        var lastAction = this.action;
+
+        if (me.input.isKeyPressed('left')) {
+            this.action = GameMessage.Action.MOVE_LEFT;
+        } else if (me.input.isKeyPressed('right')) {
+            this.action = GameMessage.Action.MOVE_RIGHT;
+        } else if (lastAction && this.action != GameMessage.Action.STOP) {
+            this.action = GameMessage.Action.STOP;
+        }
+
+        if (me.input.isKeyPressed('jump')) {
+            this.action = GameMessage.Action.JUMP;
+        }
+
+        if (this.action && this.action != lastAction) {
+            console.log('mandei', this.action);
+            me.event.publish("playerAction", [this.action, {x: this.pos.x, y: this.pos.y}]);
+        }
     }
-
-    if (me.input.isKeyPressed('jump')) {
-        hasMoved = true;
-        this.jump();
-    }
-
-    if (hasMoved) {
-        me.event.publish("mainPlayerMovement", [this.pos.x, this.pos.y]);
-    }
-  }
 });

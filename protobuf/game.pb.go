@@ -14,26 +14,32 @@ var _ = math.Inf
 type GameMessage_Action int32
 
 const (
-	GameMessage_NEW    GameMessage_Action = 0
-	GameMessage_SPAWN  GameMessage_Action = 1
-	GameMessage_IDLE   GameMessage_Action = 2
-	GameMessage_MOVING GameMessage_Action = 3
-	GameMessage_DEAD   GameMessage_Action = 4
+	GameMessage_CREATE     GameMessage_Action = 0
+	GameMessage_SPAWN      GameMessage_Action = 1
+	GameMessage_STOP       GameMessage_Action = 2
+	GameMessage_MOVE_LEFT  GameMessage_Action = 3
+	GameMessage_MOVE_RIGHT GameMessage_Action = 4
+	GameMessage_JUMP       GameMessage_Action = 5
+	GameMessage_DIE        GameMessage_Action = 6
 )
 
 var GameMessage_Action_name = map[int32]string{
-	0: "NEW",
+	0: "CREATE",
 	1: "SPAWN",
-	2: "IDLE",
-	3: "MOVING",
-	4: "DEAD",
+	2: "STOP",
+	3: "MOVE_LEFT",
+	4: "MOVE_RIGHT",
+	5: "JUMP",
+	6: "DIE",
 }
 var GameMessage_Action_value = map[string]int32{
-	"NEW":    0,
-	"SPAWN":  1,
-	"IDLE":   2,
-	"MOVING": 3,
-	"DEAD":   4,
+	"CREATE":     0,
+	"SPAWN":      1,
+	"STOP":       2,
+	"MOVE_LEFT":  3,
+	"MOVE_RIGHT": 4,
+	"JUMP":       5,
+	"DIE":        6,
 }
 
 func (x GameMessage_Action) Enum() *GameMessage_Action {
@@ -82,7 +88,7 @@ func (m *GameMessage) GetAction() GameMessage_Action {
 	if m != nil && m.Action != nil {
 		return *m.Action
 	}
-	return GameMessage_NEW
+	return GameMessage_CREATE
 }
 
 type GameMessage_Position struct {
