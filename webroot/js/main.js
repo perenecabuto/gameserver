@@ -19,7 +19,7 @@ var Game = {
         me.event.subscribe("playerAction", function(action, pos) {
             var buffer = new GameMessage({
                 id: that.player.name,
-                action:action,
+                action: action,
                 position: {x: parseInt(pos.x), y: parseInt(pos.y)}
             }).encode();
 
@@ -53,8 +53,8 @@ var Game = {
                     break;
                 default:
                     var player = me.game.world.getChildByName(message.id)[0];
-                    console.log('player', player, 'action', message.action);
-                    player.updateAction(message.action);
+                    console.log('player', player, 'action', message.action, 'position', message.position);
+                    player.updateAction(message.action, message.position);
 
                     break;
             }

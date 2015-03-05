@@ -13,15 +13,8 @@ game.PlayerEntity = me.Entity.extend({
     // call the constructor
     this._super(me.Entity, 'init', [x, y, settings]);
 
-    // set the display to follow our position on both axis
-    //me.game.viewport.follow(this.pos, me.game.viewport.AXIS.BOTH);
     // ensure the player is updated even when outside of the viewport
     this.alwaysUpdate = true;
-
-    //this.body.setCollisionType = me.collision.types.PLAYER_OBJECT;
-    //this.body.setCollisionMask(me.collision.types.WORLD_SHAPE | me.collision.types.ENEMY_OBJECT | me.collision.types.COLLECTABLE_OBJECT);
-    //this.collidable = true;
-    //this.z = 4
 
     // set the default horizontal & vertical speed (accel vector)
     this.body.setVelocity(3, 15);
@@ -40,16 +33,6 @@ game.PlayerEntity = me.Entity.extend({
    */
   update: function (dt) {
     this.updatePosition();
-
-    /* OBS
-     * Acho que essa parte pode ser externa, tanto para o player local quanto para o remoto
-     * Ou seja a implementação será a mesma
-     * somente faz body.update e collision check
-     */
-
-    /* OBS this.flipX trocado por this.renderable.flipX
-     * procure por flipX em http://blog.ciangames.com/2014/11/upgrading-to-melonjs-20.html
-     */
 
     switch(this.action) {
         case GameMessage.Action.STOP:
@@ -73,8 +56,6 @@ game.PlayerEntity = me.Entity.extend({
     // apply physics to the body (this moves the entity)
     this.body.update(dt);
 
-    //if (this.pos.y > 280) this.pos.y = 280;
-
     // handle collisions against other shapes
     me.collision.check(this);
 
@@ -88,7 +69,7 @@ game.PlayerEntity = me.Entity.extend({
      */
   onCollision : function (response, other) {
     if (typeof(other.name) == 'string' && other.name.match(/\d+/)) {
-        this.body.vel.x = 0;
+        this.stop();
         return false;
     }
 
@@ -103,12 +84,13 @@ game.PlayerEntity = me.Entity.extend({
   updatePosition: function () {
   },
 
-  updateAction: function(action) {
+  updateAction: function(action, pos) {
     this.action = action;
+    this.pos.x = pos.x;
+    this.pos.y = pos.y;
   },
   // player local
   moveLeft: function() {
-    console.log('pra esquerda');
     // flip the sprite on horizontal axis
     this.renderable.flipX(true);
     // update the entity velocity
@@ -121,7 +103,6 @@ game.PlayerEntity = me.Entity.extend({
 
   // player local
   moveRight: function() {
-    console.log('pra direita');
     // unflip the sprite
     this.renderable.flipX(false);
     // update the entity velocity
@@ -133,7 +114,6 @@ game.PlayerEntity = me.Entity.extend({
   },
 
   stop: function() {
-    console.log('parando');
     this.body.vel.x = 0;
 
     // change to the standing animation
@@ -141,7 +121,6 @@ game.PlayerEntity = me.Entity.extend({
   },
 
   jump: function() {
-    console.log('pulando');
     // make sure we are not already jumping or falling
     if (!this.body.jumping && !this.body.falling) {
         // set current vel to the maximum defined value
@@ -154,7 +133,6 @@ game.PlayerEntity = me.Entity.extend({
   },
 
   die: function() {
-    console.log('morre');
     me.game.world.removeChild(this);
   }
 
@@ -174,19 +152,11 @@ game.LocalPlayerEntity = game.PlayerEntity.extend({
         this.renderable.addAnimation("stand",  [0]);
         // set the standing animation as default
         this.renderable.setCurrentAnimation("stand");
+        // set the display to follow our position on both axis
+        me.game.viewport.follow(this.pos, me.game.viewport.AXIS.BOTH);
     },
 
     updatePosition: function () {
-        /* OBS
-         * Acho que essa parte pode ser externa, tanto para o player local quanto para o remoto
-         * Ou seja a implementação será a mesma
-         * somente faz body.update e collision check
-         */
-
-        /* OBS this.flipX trocado por this.renderable.flipX
-         * procure por flipX em http://blog.ciangames.com/2014/11/upgrading-to-melonjs-20.html
-         */
-
         var lastAction = this.action;
 
         if (me.input.isKeyPressed('left')) {
@@ -202,7 +172,6 @@ game.LocalPlayerEntity = game.PlayerEntity.extend({
         }
 
         if (this.action && this.action != lastAction) {
-            console.log('mandei', this.action);
             me.event.publish("playerAction", [this.action, {x: this.pos.x, y: this.pos.y}]);
         }
     }
