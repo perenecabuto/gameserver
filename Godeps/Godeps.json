@@ -1,0 +1,26 @@
+{
+	"ImportPath": "github.com/perenecabuto/gameserver",
+	"GoVersion": "go1.3.3",
+	"Deps": [
+		{
+			"ImportPath": "github.com/gogo/protobuf/proto",
+			"Rev": "534f0171c2dc466dd1032dbbab5f6e085f740eaa"
+		},
+		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "abd3b412d3c2460d848b6b81478fcb4e542d6327"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "8a875a034c69b940914d83ea03d3f1299b4d094b"
+		},
+		{
+			"ImportPath": "github.com/gorilla/websocket",
+			"Rev": "ab5b3a61f5b6aa323d66ece457334396c4ccdd03"
+		}
+	]
+}
