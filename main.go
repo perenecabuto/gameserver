@@ -1,10 +1,12 @@
 package main
 
 import (
-	"os"
 	"flag"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/perenecabuto/gameserver/handlers"
 )
 
 var configFile = flag.String("config", "config.json", "configuration file")
@@ -19,10 +21,11 @@ func main() {
 
 	address := config.ServerAddress
 	if len(os.Getenv("PORT")) > 0 {
-        address = "0.0.0.0:" + os.Getenv("PORT")
+		address = "0.0.0.0:" + os.Getenv("PORT")
 	}
 
-	Routes()
+	routes := handlers.Routes()
+	http.Handle("/", routes)
 
 	if config.UseTLS {
 		log.Println("Starting Secure WebSocket server at https://" + config.ServerAddress)

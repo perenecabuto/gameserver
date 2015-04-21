@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"net/http"
@@ -6,14 +6,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func Routes() {
+func Routes() *mux.Router {
 	router := mux.NewRouter()
 
 	router.PathPrefix("/protobuf/").Handler(http.StripPrefix("/protobuf/", http.FileServer(http.Dir("protobuf/"))))
 
 	router.Handle("/ws/chat", NewChatServer())
-	router.Handle("/ws/game", NewGameServer())
+	router.Handle("/ws/game", GameHandler())
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("webroot/")))
 
-	http.Handle("/", router)
+	return router
 }

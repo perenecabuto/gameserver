@@ -60,7 +60,7 @@ func (x *GameMessage_Action) UnmarshalJSON(data []byte) error {
 }
 
 type GameMessage struct {
-	Id               *uint32               `protobuf:"varint,1,req,name=id" json:"id,omitempty"`
+	Id               *string               `protobuf:"bytes,1,req,name=id" json:"id,omitempty"`
 	Position         *GameMessage_Position `protobuf:"bytes,2,req,name=position" json:"position,omitempty"`
 	Action           *GameMessage_Action   `protobuf:"varint,3,req,name=action,enum=protobuf.GameMessage_Action" json:"action,omitempty"`
 	XXX_unrecognized []byte                `json:"-"`
@@ -70,11 +70,11 @@ func (m *GameMessage) Reset()         { *m = GameMessage{} }
 func (m *GameMessage) String() string { return proto.CompactTextString(m) }
 func (*GameMessage) ProtoMessage()    {}
 
-func (m *GameMessage) GetId() uint32 {
+func (m *GameMessage) GetId() string {
 	if m != nil && m.Id != nil {
 		return *m.Id
 	}
-	return 0
+	return ""
 }
 
 func (m *GameMessage) GetPosition() *GameMessage_Position {

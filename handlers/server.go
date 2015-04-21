@@ -1,8 +1,9 @@
-package main
+package handlers
 
 import (
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -17,8 +18,9 @@ type WebSocketManager interface {
 }
 
 type WebSocketServer struct {
+	manager   WebSocketManager
 	broadcast Broadcast
-	WebSocketManager
+	URL       *url.URL
 }
 
 var (
@@ -31,11 +33,12 @@ var (
 )
 
 func NewWebSocketServer(manager WebSocketManager) *WebSocketServer {
-	return &WebSocketServer{make(Broadcast), manager}
+	return &WebSocketServer{manager, make(Broadcast), nil}
 }
 
 func (w *WebSocketServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(rw, r, nil)
+	w.URL = r.URL
 
 	if err != nil {
 		log.Println("WS connection failed: ", err)
@@ -47,7 +50,7 @@ func (w *WebSocketServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	go w.listenWSMessage(ws)
 	go w.broadcastMessage(ws)
 
-	w.OnOpen(ws)
+	w.manager.OnOpen(ws)
 	w.ping(ws)
 }
 
@@ -77,7 +80,7 @@ func (w *WebSocketServer) broadcastMessage(ws *websocket.Conn) {
 			}
 
 			log.Println("OnMessage:", message)
-			w.OnMessage(ws, message)
+			w.manager.OnMessage(ws, message)
 		}
 	}
 }
@@ -87,7 +90,7 @@ func (w *WebSocketServer) closeConnection(ws *websocket.Conn) {
 		ws.WriteMessage(websocket.CloseMessage, []byte{})
 		ws.Close()
 	}()
-	w.OnClose(ws)
+	w.manager.OnClose(ws)
 	log.Println("WS connection finished")
 }
 
