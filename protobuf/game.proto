@@ -16,7 +16,7 @@ message GameMessage {
     required int32 y = 2;
   }
 
-  required int32 id = 1;
+  required uint32 id = 1;
   required Position position = 2;
   required Action action = 3;
 }
