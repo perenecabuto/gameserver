@@ -19,27 +19,51 @@ Game.prototype = {
 
         this.physics.enable(this.player, Phaser.Physics.ARCADE);
         this.player.body.collideWorldBounds = true;
+        this.onComplete();
     },
 
     update: function() {
+        // TODO send velocity and position to have a minimum prediction and correction
         var jumping = this.player.y + this.player.body.height / 2 < this.world.height;
+        var old_inaction = Boolean(this.player.inaction);
+
         if (!jumping && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+            this.player.inaction = true;
             jumping = true;
             this.player.body.velocity.y = -400;
         }
 
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+            this.player.inaction = true;
             this.player.body.velocity.x = -STEP_SIZE;
             this.player.play('walk-left');
         } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+            this.player.inaction = true;
             this.player.body.velocity.x = STEP_SIZE;
             this.player.play('walk-right');
         } else if (!jumping) {
+            this.player.inaction = false;
             this.player.reset(this.player.x, this.player.y);
+        }
+
+        if (old_inaction && !this.player.inaction) {
+            $(document).trigger("player-action", [GameMessage.Action.STOP, {x: this.player.body.x, y: this.player.body.y}]);
         }
     },
 
     render: function () {
         this.game.debug.spriteInfo(this.player, 20, 32);
+    },
+
+    onComplete: function(callback) {
+        this._onComplete = this._onComplete || function() {};
+
+        if (callback) {
+            this._onComplete = callback;
+        } else {
+            this._onComplete(this);
+        }
+
+        return this;
     }
 };
