@@ -12,13 +12,21 @@ Game.prototype = {
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
         this.game.physics.arcade.gravity.y = 1200;
 
-        this.player = this.game.add.sprite(this.game.world.centerX, this.game.world.height - 16, 'boy');
-        this.player.anchor.setTo(0.5, 0.5);
-        this.player.animations.add('walk-left', [4, 5, 6, 7], 20, true);
-        this.player.animations.add('walk-right', [8, 9, 10, 11], 20, true);
+        this.playerPool = this.add.group();
+        this.playerPool.enableBody = true;
+        this.playerPool.physicsBodyType = Phaser.Physics.ARCADE;
+        this.playerPool.createMultiple(50, 'boy');
+        this.playerPool.setAll('anchor.x', 0.5);
+        this.playerPool.setAll('anchor.y', 0.5);
+        this.playerPool.setAll('body.collideWorldBounds', true);
+        this.playerPool.setAll('body.collideWorldBounds', true);
+        this.playerPool.forEach(function (player) {
+            player.animations.add('walk-left', [4, 5, 6, 7], 20, true);
+            player.animations.add('walk-right', [8, 9, 10, 11], 20, true);
+        });
 
-        this.physics.enable(this.player, Phaser.Physics.ARCADE);
-        this.player.body.collideWorldBounds = true;
+        this.player = this.playerPool.getFirstExists(false);
+        this.player.reset(this.game.world.centerX, this.game.world.height - 16);
 
         var that = this;
         this.game.input.keyboard.onUpCallback = function() {
@@ -50,9 +58,8 @@ Game.prototype = {
               this.player.play('walk-right');
               break;
             case GameMessage.Action.DIE:
-              this.player.die();
+              this.player.kill();
               break;
-
         }
 
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
