@@ -19,51 +19,50 @@ Game.prototype = {
 
         this.physics.enable(this.player, Phaser.Physics.ARCADE);
         this.player.body.collideWorldBounds = true;
-        this.onComplete();
+
+        var that = this;
+        this.game.input.keyboard.onUpCallback = function() {
+            $(document).trigger("player-action", [GameMessage.Action.STOP, {x: that.player.body.x, y: that.player.body.y}]);
+        };
     },
 
     update: function() {
         // TODO send velocity and position to have a minimum prediction and correction
-        var jumping = this.player.y + this.player.body.height / 2 < this.world.height;
-        var old_inaction = Boolean(this.player.inaction);
-
-        if (!jumping && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-            this.player.inaction = true;
-            jumping = true;
+        this.player.jumping = this.player.y + this.player.body.height / 2 < this.world.height;
+        if (!this.player.jumping && this.action == GameMessage.Action.JUMP) {
             this.player.body.velocity.y = -400;
         }
 
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-            this.player.inaction = true;
-            this.player.body.velocity.x = -STEP_SIZE;
-            this.player.play('walk-left');
-        } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-            this.player.inaction = true;
-            this.player.body.velocity.x = STEP_SIZE;
-            this.player.play('walk-right');
-        } else if (!jumping) {
-            this.player.inaction = false;
-            this.player.reset(this.player.x, this.player.y);
+        switch(this.action) {
+            case GameMessage.Action.STOP:
+              this.player.reset(this.player.x, this.player.y);
+              break;
+            case GameMessage.Action.MOVE_LEFT:
+              this.player.body.velocity.x = -STEP_SIZE;
+              this.player.play('walk-left');
+              break;
+            case GameMessage.Action.MOVE_RIGHT:
+              this.player.body.velocity.x = STEP_SIZE;
+              this.player.play('walk-right');
+              break;
+            case GameMessage.Action.DIE:
+              this.player.die();
+              break;
+
         }
 
-        if (old_inaction && !this.player.inaction) {
-            $(document).trigger("player-action", [GameMessage.Action.STOP, {x: this.player.body.x, y: this.player.body.y}]);
+        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+            this.action = GameMessage.Action.JUMP;
+        } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+            this.action = GameMessage.Action.MOVE_LEFT;
+        } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+            this.action = GameMessage.Action.MOVE_RIGHT;
+        } else if (!this.player.jumping) {
+            this.action = GameMessage.Action.STOP;
         }
     },
 
     render: function () {
-        this.game.debug.spriteInfo(this.player, 20, 32);
-    },
-
-    onComplete: function(callback) {
-        this._onComplete = this._onComplete || function() {};
-
-        if (callback) {
-            this._onComplete = callback;
-        } else {
-            this._onComplete(this);
-        }
-
-        return this;
+        //this.game.debug.spriteInfo(this.player, 20, 32);
     }
 };
