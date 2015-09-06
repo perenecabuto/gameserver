@@ -30,3 +30,6 @@ bower_components
 gin-bin
 
 gameserver
+
+# vim sw?
+*.sw?
