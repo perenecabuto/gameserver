@@ -22,7 +22,11 @@ Game.prototype = {
 
         var that = this;
         this.game.input.keyboard.onUpCallback = function() {
-            $(document).trigger("player-action", [GameMessage.Action.STOP, {x: that.player.body.x, y: that.player.body.y}]);
+            var actionEvent = new CustomEvent("player-action", {detail: {
+                action: GameMessage.Action.STOP,
+                pos: {x: that.player.body.x, y: that.player.body.y}
+            }});
+            document.dispatchEvent(actionEvent);
         };
     },
 

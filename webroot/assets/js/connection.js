@@ -4,12 +4,9 @@ var GameConnection = {
         this.game = game;
         this.players = {};
 
-        $(document).on("player-action", function(e, action, pos) {
-            if (!that.game.player) {
-                console.log("No player found to send position: ", action, pos);
-                return;
-            };
-
+        document.addEventListener("player-action", function(e) {
+            var action = e.detail.action;
+            var pos = e.detail.pos;
             var buffer = new GameMessage({
                 id: that.game.player.id,
                 action: action,
@@ -29,7 +26,7 @@ var GameConnection = {
         this.conn.binaryType = "arraybuffer";
 
         this.conn.onopen = function(evt) {
-            Chat.send("here comes a new challenger!");
+            Chat.write("here comes a new challenger!");
         };
 
         this.conn.onmessage = function(evt) {
@@ -60,55 +57,5 @@ var GameConnection = {
             Chat.send("! lost game connection");
             setTimeout(function() { that.connect(); }, 1000);
         };
-    }
-};
-
-var Chat = {
-    init: function() {
-        var that = this;
-
-        var form = document.getElementById("form");
-        form.addEventListener("submit", function(e) {
-            e.preventDefault();
-
-            if (that.conn && form.msg.value) {
-                var player_message = new ChatMessage('user', form.msg.value);
-                var buffer = player_message.encode();
-
-                that.conn.send(buffer.toArrayBuffer());
-                form.msg.value = "";
-            } else {
-                console.log("Could not send message connection or message is in invalid state");
-            }
-
-            return false;
-        });
-
-        this.connect();
-    },
-
-    connect: function() {
-        var that = this;
-        this.conn = new WebSocket("ws://" + location.host + "/ws/chat");
-        this.conn.binaryType = "arraybuffer";
-
-        this.conn.onopen = function() {
-            that.send("<h1>Connection opened</h1>");
-        };
-
-        this.conn.onmessage = function(evt) {
-            var message = ChatMessage.decode(evt.data);
-            that.send(message.name + ": " + message.text);
-        };
-
-        this.conn.onclose = function(evt) {
-            setTimeout(that.connect, 1000);
-            that.send("! Connection closed.");
-        };
-    },
-
-    send: function(message) {
-        this.msg = this.msg || document.getElementById("messages");
-        this.msg.innerHTML += message + "\n";
     }
 };
