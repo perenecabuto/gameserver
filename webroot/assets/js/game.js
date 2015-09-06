@@ -24,6 +24,7 @@ Game.prototype = {
     update: function() {
         var jumping = this.player.y + this.player.body.height / 2 < this.world.height;
         if (!jumping && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+            jumping = true;
             this.player.body.velocity.y = -400;
         }
 
