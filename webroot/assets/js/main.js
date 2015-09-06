@@ -6,7 +6,7 @@ var GameMessage = ProtoBuf.loadProtoFile("/protobuf/game.proto").build('protobuf
     'use strict';
 
     var game = new Game();
-    var phaser = new Phaser.Game(800, 200, Phaser.AUTO, '', game);
+    var phaser = new Phaser.Game(600, 200, Phaser.AUTO, '', game);
 
     Chat.init();
     GameConnection.init(game);
