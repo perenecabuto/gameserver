@@ -2,21 +2,6 @@ var GameConnection = {
     init: function (game) {
         var that = this;
         this.game = game;
-        this.players = {};
-
-        document.addEventListener("player-action", function(e) {
-            var action = e.detail.action;
-            var pos = e.detail.pos;
-            var buffer = new GameMessage({
-                id: that.game.player.id,
-                action: action,
-                position: {x: parseInt(pos.x), y: parseInt(pos.y)}
-            }).encode();
-
-            console.log("Sending position: ", action, pos);
-            that.conn.send(buffer.toArrayBuffer());
-        });
-
         this.connect();
     },
 
@@ -31,31 +16,86 @@ var GameConnection = {
 
         this.conn.onmessage = function(evt) {
             var message = GameMessage.decode(evt.data);
-            if (that.game.player && message.id === that.game.player.name) return;
+            var remotePlayer;
+
+            if (that.player && message.id === that.player.id) return;
+
+            if (that.game.playerPool) {
+                remotePlayer = that.game.playerPool.filter(function(player) { return player.id == message.id }, true).first;
+            }
 
             switch (message.action) {
                 case GameMessage.Action.CREATE:
-                    that.game.player.id = message.id;
+                    player = that.game.playerPool.getFirstExists(false);
+                    player.id = message.id;
+                    player.reset(that.game.world.centerX, that.game.world.height - 16);
+                    player.action = GameMessage.Action.STOP;
+                    that.player = player;
+
+                    that.game.input.keyboard.onDownCallback = function(e) {
+                        if (that.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+                            player.action = GameMessage.Action.JUMP;
+                        } else if (that.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+                            player.action = GameMessage.Action.MOVE_LEFT;
+                        } else if (that.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+                            player.action = GameMessage.Action.MOVE_RIGHT;
+                        } else if (!player.jumping) {
+                            player.action = GameMessage.Action.STOP;
+                        }
+
+                        if (!that.sendingPosition) {
+                            console.log('MOUSE DOWN');
+                            that.sendingPosition = true;
+                            that.send(player.id, player.action, player.x, player.y);
+                        }
+                    };
+                    that.game.input.keyboard.onUpCallback = function() {
+                        console.log('MOUSE UP');
+                        that.sendingPosition = false;
+                        player.action = GameMessage.Action.STOP;
+                        that.send(player.id, player.action, player.x, player.y);
+                    };
                     break;
                 case GameMessage.Action.SPAWN:
-                    // CREATE REMOTE PLAYER HERE
-                    //var player = new game.PlayerEntity(message.id, message.position.x, message.position.y);
-                    //me.game.world.addChild(player, 4);
-
+                    if (!remotePlayer) {
+                        remotePlayer = that.game.playerPool.getFirstExists(false);
+                        remotePlayer.id = message.id;
+                    }
+                    remotePlayer.action = GameMessage.Action.STOP;
+                    remotePlayer.reset(message.position.x, message.position.y);
                     break;
-                default:
-                    // UPDATE PLAYER POSITION HERE
-                    //var player = me.game.world.getChildByName(message.id)[0];
-                    //console.log('player', player, 'action', message.action, 'position', message.position);
-                    //player.updateAction(message.action, message.position);
-
+                case GameMessage.Action.DIE:
+                    if (remotePlayer) remotePlayer.kill();
+                    break;
+                case GameMessage.Action.STOP:
+                    if (remotePlayer) {
+                        remotePlayer.action = message.action;
+                        remotePlayer.x = message.position.x;
+                        remotePlayer.y = message.position.y;
+                    }
+                    break;
+                case GameMessage.Action.MOVE_LEFT:
+                case GameMessage.Action.MOVE_RIGHT:
+                case GameMessage.Action.JUMP:
+                    if (remotePlayer) remotePlayer.action = message.action;
                     break;
             }
         };
 
         this.conn.onclose = function(evt) {
-            Chat.send("! lost game connection");
+            that.send(player.id, GameMessage.Action.DIE, player.x, player.y);
             setTimeout(function() { that.connect(); }, 1000);
         };
+    },
+
+    send: function(id, action, x, y) {
+        var buffer = new GameMessage({
+            id: id,
+            action: action,
+            position: {x: parseInt(x), y: parseInt(y)}
+        }).encode();
+
+        console.log("Sengind ID: ", player.id, "action", player.action);
+        this.conn.send(buffer.toArrayBuffer());
     }
 };
