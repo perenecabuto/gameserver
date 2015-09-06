@@ -1,0 +1,26 @@
+body {
+    background: black;
+}
+
+.chat {
+    width: 40%;
+    top: 8px;
+    right: 10px;
+    bottom: 10px;
+    position: absolute;
+    color: white;
+}
+.chat form {
+    display: block;
+}
+.chat form input {
+    width: 80%;
+}
+.chat form button {
+    width: 20%;
+    float: right;
+}
+
+canvas {
+    border-bottom: 1px solid white;
+}

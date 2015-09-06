@@ -1,7 +1,25 @@
 <html>
+    <head>
+        <link rel="stylesheet" href="assets/css/main.css">
+    </head>
     <body>
+        <div class="chat">
+            <form action="" id="form">
+                <input type="text" name="msg" />
+                <button type="submit">send</button>
+            </form>
+            <pre id="messages"></pre>
+        </div>
+
+        <!-- Vendors -->
+        <script src="vendor/js/long/Long.min.js"></script>
+        <script src="vendor/js/bytebuffer/ByteBufferAB.min.js"></script>
+        <script src="vendor/js/protobuf/ProtoBuf.min.js"></script>
         <script src="vendor/js/phaser.js"></script>
+        <script src="vendor/js/jquery/jquery.min.js"></script>
+
         <script src="assets/js/game.js"></script>
+        <script src="assets/js/connection.js"></script>
         <script src="assets/js/main.js"></script>
     </body>
 </html>
