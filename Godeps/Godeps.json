@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/perenecabuto/gameserver",
-	"GoVersion": "go1.3.3",
+	"GoVersion": "go1.5",
 	"Deps": [
 		{
 			"ImportPath": "github.com/gogo/protobuf/proto",
