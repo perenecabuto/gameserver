@@ -10,6 +10,7 @@ Game.prototype = {
     },
 
     create: function () {
+        this.game.plugins.add(Phaser.Plugin.SaveCPU);
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
         this.game.physics.arcade.gravity.y = 1200;
         this.stage.disableVisibilityChange = true;
