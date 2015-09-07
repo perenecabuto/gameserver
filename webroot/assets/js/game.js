@@ -1,4 +1,5 @@
 var STEP_SIZE = 100;
+var MAX_PLAYERS = 10;
 var Game = function() {};
 
 Game.prototype = {
@@ -16,8 +17,9 @@ Game.prototype = {
     },
 
     update: function() {
+        //this.physics.arcade.overlap(this.playerPool, this.playerPool, this.playerHit, null, this);
         var that = this;
-        this.playerPool.forEach(function(player) {
+        this.playerPool.forEachAlive(function(player) {
             // TODO send velocity and position to have a minimum prediction and correction
             player.jumping = player.y + player.body.height / 2 < that.world.height;
             if (!player.jumping && player.action == GameMessage.Action.JUMP) {
@@ -51,10 +53,9 @@ Game.prototype = {
         var playerPool = this.add.group();
         playerPool.enableBody = true;
         playerPool.physicsBodyType = Phaser.Physics.ARCADE;
-        playerPool.createMultiple(50, 'boy');
+        playerPool.createMultiple(MAX_PLAYERS, 'boy');
         playerPool.setAll('anchor.x', 0.5);
         playerPool.setAll('anchor.y', 0.5);
-        playerPool.setAll('body.collideWorldBounds', true);
         playerPool.setAll('body.collideWorldBounds', true);
         playerPool.forEach(function (player) {
             player.animations.add('walk-left', [4, 5, 6, 7], 20, true);
