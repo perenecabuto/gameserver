@@ -92,23 +92,23 @@ func (m *GameMessage) GetAction() GameMessage_Action {
 }
 
 type GameMessage_Position struct {
-	X                *int32 `protobuf:"varint,1,req,name=x" json:"x,omitempty"`
-	Y                *int32 `protobuf:"varint,2,req,name=y" json:"y,omitempty"`
-	XXX_unrecognized []byte `json:"-"`
+	X                *float32 `protobuf:"fixed32,1,req,name=x" json:"x,omitempty"`
+	Y                *float32 `protobuf:"fixed32,2,req,name=y" json:"y,omitempty"`
+	XXX_unrecognized []byte   `json:"-"`
 }
 
 func (m *GameMessage_Position) Reset()         { *m = GameMessage_Position{} }
 func (m *GameMessage_Position) String() string { return proto.CompactTextString(m) }
 func (*GameMessage_Position) ProtoMessage()    {}
 
-func (m *GameMessage_Position) GetX() int32 {
+func (m *GameMessage_Position) GetX() float32 {
 	if m != nil && m.X != nil {
 		return *m.X
 	}
 	return 0
 }
 
-func (m *GameMessage_Position) GetY() int32 {
+func (m *GameMessage_Position) GetY() float32 {
 	if m != nil && m.Y != nil {
 		return *m.Y
 	}

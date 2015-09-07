@@ -12,8 +12,8 @@ message GameMessage {
   }
 
   message Position {
-    required int32 x = 1;
-    required int32 y = 2;
+    required float x = 1;
+    required float y = 2;
   }
 
   required int32 id = 1;

@@ -29,7 +29,7 @@ func (m *GameManager) OnOpen(ws *websocket.Conn) {
 	// Send new player his start data
 	message := &protobuf.GameMessage{
 		Id:       proto.Int32(m.currentId),
-		Position: &protobuf.GameMessage_Position{X: proto.Int32(100), Y: proto.Int32(200)},
+		Position: &protobuf.GameMessage_Position{X: proto.Float32(0), Y: proto.Float32(0)},
 		Action:   protobuf.GameMessage_CREATE.Enum(),
 	}
 
