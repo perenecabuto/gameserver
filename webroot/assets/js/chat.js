@@ -1,6 +1,7 @@
 var Chat = {
     init: function() {
-        var that = this;
+        this.playerName = window.prompt("Player name:", localStorage.getItem('playerName'));
+        localStorage.setItem('playerName', this.playerName);
         this.connect();
     },
 
@@ -29,20 +30,21 @@ var Chat = {
         this.msg.innerHTML += message + "\n";
     },
 
-    send: function(message) {
-        this.conn.send(message);
+    send: function(label, value) {
+        var message = new ChatMessage(label, value);
+        var buffer = message.encode();
+        this.conn.send(buffer.toArrayBuffer());
     },
 
     doBinds: function() {
+        var that = this;
         this.msg =  document.getElementById("messages");
         this.form = document.getElementById("form");
         this.form.addEventListener("submit", function(e) {
             e.preventDefault();
 
             if (!form.msg.value.match(/^\s*$/)) {
-                var player_message = new ChatMessage('user', form.msg.value);
-                var buffer = player_message.encode();
-                Chat.send(buffer.toArrayBuffer());
+                Chat.send(that.playerName, form.msg.value);
             }
 
             form.msg.value = "";
