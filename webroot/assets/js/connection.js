@@ -18,7 +18,7 @@ var GameConnection = {
             var message = GameMessage.decode(evt.data);
             var remotePlayer;
 
-            if (that.player && message.id === that.player.id) return;
+            if (message.id === that.playerId) return;
 
             if (that.game.playerPool) {
                 remotePlayer = that.game.playerPool.filter(function(player) { return player.id == message.id }, true).first;
@@ -26,11 +26,11 @@ var GameConnection = {
 
             switch (message.action) {
                 case GameMessage.Action.CREATE:
+                    that.playerId = message.id;
                     player = that.game.playerPool.getFirstExists(false);
-                    player.id = message.id;
-                    player.reset(that.game.world.centerX, that.game.world.height - 16);
+                    player.id = that.playerId;
+                    player.reset(message.position.x, message.position.y);
                     player.action = GameMessage.Action.STOP;
-                    that.player = player;
 
                     that.game.input.keyboard.onDownCallback = function(e) {
                         if (that.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
@@ -43,10 +43,11 @@ var GameConnection = {
                             player.action = GameMessage.Action.STOP;
                         }
 
-                        if (!that.sendingPosition) {
+
+                        if (!that.sendingPosition && player.action != GameMessage.Action.STOP) {
                             console.log('MOUSE DOWN');
                             that.sendingPosition = true;
-                            that.send(player.id, player.action, player.x, player.y);
+                            that.send(player.id, player.action, player.body.x, player.body.y);
                         }
                     };
                     that.game.input.keyboard.onUpCallback = function() {
@@ -65,7 +66,9 @@ var GameConnection = {
                     remotePlayer.reset(message.position.x, message.position.y);
                     break;
                 case GameMessage.Action.DIE:
-                    if (remotePlayer) remotePlayer.kill();
+                    if (remotePlayer) {
+                        remotePlayer.kill();
+                    }
                     break;
                 case GameMessage.Action.STOP:
                     if (remotePlayer) {
@@ -74,11 +77,8 @@ var GameConnection = {
                         remotePlayer.y = message.position.y;
                     }
                     break;
-                case GameMessage.Action.MOVE_LEFT:
-                case GameMessage.Action.MOVE_RIGHT:
-                case GameMessage.Action.JUMP:
+                default:
                     if (remotePlayer) remotePlayer.action = message.action;
-                    break;
             }
         };
 
@@ -92,7 +92,7 @@ var GameConnection = {
         var buffer = new GameMessage({
             id: id,
             action: action,
-            position: {x: parseInt(x), y: parseInt(y)}
+            position: {x: x, y: y}
         }).encode();
 
         console.log("Sengind ID: ", player.id, "action", player.action);
