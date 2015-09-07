@@ -43,7 +43,6 @@ var GameConnection = {
                             player.action = GameMessage.Action.STOP;
                         }
 
-
                         if (!that.sendingPosition && player.action != GameMessage.Action.STOP) {
                             console.log('MOUSE DOWN');
                             that.sendingPosition = true;

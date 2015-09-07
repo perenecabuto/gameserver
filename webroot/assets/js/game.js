@@ -28,7 +28,10 @@ Game.prototype = {
 
             switch(player.action) {
                 case GameMessage.Action.STOP:
-                    if (!player.jumping) player.reset(player.x, player.y);
+                    if (!player.jumping) {
+                        player.body.velocity.x = 0;
+                        player.animations.stop(null, true);
+                    }
                     break;
                 case GameMessage.Action.MOVE_LEFT:
                     player.body.velocity.x = -STEP_SIZE;
